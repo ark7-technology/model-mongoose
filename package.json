@@ -4,7 +4,7 @@
   "description": "Type-script friendly, object-oriented, database modeling framework",
   "main": "dist/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "./node_modules/.bin/mocha"
   },
   "repository": {
     "type": "git",
