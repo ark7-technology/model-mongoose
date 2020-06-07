@@ -1,0 +1,1 @@
+{"version":3,"sources":["index.ts"],"names":[],"mappings":";;;AAAA,uCAAuC;AAE9B,4BAAQ","file":"index.js","sourcesContent":["import * as mongoose from './mongoose';\r\n\r\nexport { mongoose };"],"sourceRoot":"D:\\zyq\\ark-db/src"}

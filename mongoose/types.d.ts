@@ -1,0 +1,82 @@
+import * as mongodb from 'mongodb';
+import { Document, Model as MModel } from 'mongoose';
+import { A7Model } from './a7-model';
+import { Model } from './model';
+declare type OrdinaryFields = '_id' | 'createdAt' | 'lastUpdateTime';
+declare type AsObjectSingle<T extends Model> = Omit<T, Exclude<keyof A7Model, OrdinaryFields>>;
+export declare type AsObject<T extends Model> = {
+    [key in keyof AsObjectSingle<Omit<T, OrdinaryFields>>]: T[key];
+} & Partial<Pick<T, OrdinaryFields & keyof T>>;
+export declare type DeepPartial<T> = T extends Function ? T : T extends object ? {
+    [P in keyof T]?: DeepPartial<T[P]>;
+} : T;
+export declare type AsObjectPartial<T extends Model> = DeepPartial<AsObject<T>>;
+export declare type PartialDoc<X extends Model> = AsObjectPartial<X>;
+export interface ModifiedMongooseModel<T extends Document, M extends Model> extends Omit<MModel<T>, 'create' | 'insertMany'> {
+    create(doc: PartialDoc<M>, options?: mongoose.SaveOptions): Promise<T>;
+    insertMany(docs: PartialDoc<M>, options?: mongoose.InsertManyOptions): Promise<T>;
+    insertMany(docs: PartialDoc<M>[], options?: mongoose.InsertManyOptions): Promise<T[]>;
+    findOneAndReplace(query: any, update: PartialDoc<M>, options?: mongoose.FindOneAndReplaceOptions): Promise<T>;
+}
+export declare type ConvertModel<T extends Document, X extends Model> = ModifiedMongooseModel<T, X>;
+declare namespace mongoose {
+    interface SaveOptions {
+        safe?: boolean | WriteConcern;
+        validateBeforeSave?: boolean;
+        session?: ClientSession;
+    }
+    interface InsertManyOptions {
+        ordered?: boolean;
+        rawResult?: boolean;
+    }
+    interface WriteConcern {
+        j?: boolean;
+        w?: number | 'majority' | TagSet;
+        wtimeout?: number;
+    }
+    interface TagSet {
+        [k: string]: string;
+    }
+    interface ClientSession extends mongodb.ClientSession {
+    }
+    interface FindOneAndReplaceOptions {
+        /** if true, return the modified document rather than the original. defaults to false (changed in 4.0) */
+        new?: boolean;
+        /** creates the object if it doesn't exist. defaults to false. */
+        upsert?: boolean;
+        /** if true, runs update validators on this command. Update validators validate the update operation against the model's schema. */
+        runValidators?: boolean;
+        /**
+         * if this and upsert are true, mongoose will apply the defaults specified in the model's schema if a new document
+         * is created. This option only works on MongoDB >= 2.4 because it relies on MongoDB's $setOnInsert operator.
+         */
+        setDefaultsOnInsert?: boolean;
+        /**
+         * if set to 'query' and runValidators is on, this will refer to the query in custom validator
+         * functions that update validation runs. Does nothing if runValidators is false.
+         */
+        context?: string;
+        /**
+         *  by default, mongoose only returns the first error that occurred in casting the query.
+         *  Turn on this option to aggregate all the cast errors.
+         */
+        multipleCastError?: boolean;
+        /** Field selection. Equivalent to .select(fields).findOneAndUpdate() */
+        fields?: any | string;
+        /**
+         * If true, delete any properties whose value is undefined when casting an
+         * update. In other words, if this is set, Mongoose will delete baz from the
+         * update in Model.updateOne({}, { foo: 'bar', baz: undefined }) before
+         * sending the update to the server.
+         */
+        omitUndefined?: boolean;
+        session?: ClientSession;
+        /**
+         * Only update elements that match the arrayFilters conditions in the document or documents that match the query conditions.
+         */
+        arrayFilters?: {
+            [key: string]: any;
+        }[];
+    }
+}
+export {};

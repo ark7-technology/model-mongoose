@@ -1,0 +1,1 @@
+{"version":3,"sources":["index.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,QAAQ,MAAM,YAAY,CAAC;AAEvC,OAAO,EAAE,QAAQ,EAAE,CAAC","file":"index.d.ts","sourcesContent":["import * as mongoose from './mongoose';\r\n\r\nexport { mongoose };"],"sourceRoot":"D:\\zyq\\ark-db/src"}
