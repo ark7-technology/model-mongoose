@@ -1,1 +1,1 @@
-export const libName = 'ark-db';
+export * from './model-mongoose';
