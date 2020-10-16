@@ -45,6 +45,8 @@ describe('mongoose-manager', () => {
           fn: Object.getOwnPropertyDescriptor(Name, 'createName').value,
         },
       ]);
+
+      // console.log(mongooseOptions.schema);
     });
   });
 });

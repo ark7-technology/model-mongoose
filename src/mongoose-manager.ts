@@ -13,7 +13,9 @@ export class MongooseManager {
     this.mongoose = this.mongoose ?? mongoose;
   }
 
-  register<T>(cls: string | ModelClass<T>): T {
+  register<T>(
+    cls: string | ModelClass<T>,
+  ): mongoose.Model<mongoose.Document & T> {
     const mongooseOptions = this.getMongooseOptions(cls);
 
     return mongoose.model(
@@ -31,22 +33,16 @@ export class MongooseManager {
 
     const metadata = A7Model.getMetadata(model);
 
-    const mongooseOptions: MongooseOptions = {
-      name: metadata.name,
-      mongooseSchema: new mongoose.Schema(),
-      schema: {},
-      virtuals: [],
-      methods: [],
-      statics: [],
-    };
+    const mongooseOptions = new MongooseOptions(
+      metadata.name,
+    ).createMongooseSchema();
 
     this.mongooseOptionsMap.set(name, mongooseOptions);
 
-    this.createMongooseOptionsFrom(mongooseOptions, metadata);
-    return mongooseOptions;
+    return mongooseOptions.updateMetadata(metadata, this);
   }
 
-  private mapPropertyType(type: runtime.Type): any {
+  mapPropertyType(type: runtime.Type): any {
     switch (type) {
       case 'string':
         return String;
@@ -71,11 +67,135 @@ export class MongooseManager {
       ];
     }
   }
+}
 
-  private createMongooseOptionsFrom(
-    options: MongooseOptions,
+export const mongooseManager = new MongooseManager();
+
+/**
+ * Mongoose options for current model.
+ */
+export class MongooseOptions {
+  config: mongoose.SchemaOptions = {};
+  schema: {
+    [key: string]: any;
+  } = {};
+  mongooseSchema?: mongoose.Schema;
+  pres: Pre[] = [];
+  posts: Post[] = [];
+  virtuals: Virtual[] = [];
+  methods: Method[] = [];
+  statics: Method[] = [];
+  plugins: Plugin[] = [];
+  indexes: MongooseIndex[] = [];
+  updateValidators: UpdateValidator[] = [];
+
+  constructor(public name: string) {}
+
+  clone(): MongooseOptions {
+    const ret = new MongooseOptions(this.name);
+    ret.config = this.config;
+    ret.schema = this.schema;
+    ret.mongooseSchema = this.mongooseSchema;
+    ret.pres = this.pres;
+    ret.posts = this.posts;
+    ret.virtuals = this.virtuals;
+    ret.methods = this.methods;
+    ret.statics = this.statics;
+    ret.plugins = this.plugins;
+    ret.indexes = this.indexes;
+    ret.updateValidators = this.updateValidators;
+
+    return ret;
+  }
+
+  createMongooseSchema(mongooseSchema?: mongoose.Schema): this {
+    this.mongooseSchema =
+      this.mongooseSchema ?? mongooseSchema ?? new mongoose.Schema();
+
+    return this;
+  }
+
+  updateMetadata(metadata: Ark7ModelMetadata, manager: MongooseManager): this {
+    const currentOptions = MongooseOptions.createFromCurrentMetadata(
+      metadata,
+      manager,
+    );
+
+    this.updateMongooseOptions(currentOptions);
+
+    return this.updateMongooseSchema();
+  }
+
+  protected updateMongooseOptions(options: MongooseOptions): this {
+    _.defaults(this.config, options.config);
+    _.defaults(this.schema, options.schema);
+    this.pres = _.union([...this.pres, ...options.pres]);
+    this.posts = _.union([...this.posts, ...options.posts]);
+    this.virtuals = _.union([...this.virtuals, ...options.virtuals]);
+    this.methods = _.union([...this.methods, ...options.methods]);
+    this.statics = _.union([...this.statics, ...options.statics]);
+    this.plugins = _.union([...this.plugins, ...options.plugins]);
+    this.indexes = _.union([...this.indexes, ...options.indexes]);
+    this.updateValidators = _.union([
+      ...this.updateValidators,
+      ...options.updateValidators,
+    ]);
+
+    return this;
+  }
+
+  protected updateMongooseSchema(): this {
+    this.mongooseSchema.add(this.schema);
+
+    for (const virtual of this.virtuals) {
+      d(
+        'create virtual for %O with name %O and options %O',
+        this.name,
+        virtual.name,
+        virtual.options,
+      );
+      let v = this.mongooseSchema.virtual(virtual.name, virtual.options);
+      if (virtual.get) {
+        v = v.get(virtual.get);
+      }
+      if (virtual.set) {
+        v = v.set(virtual.set);
+      }
+    }
+
+    for (const method of this.methods) {
+      d(
+        'create method for %O with name %O and function %O',
+        this.name,
+        method.name,
+        method.fn,
+      );
+      this.mongooseSchema.methods[method.name] = method.fn;
+    }
+
+    for (const method of this.statics) {
+      d(
+        'create static function for %O with name %O and function %O',
+        this.name,
+        method.name,
+        method.fn,
+      );
+      this.mongooseSchema.statics[method.name] = method.fn;
+    }
+
+    return this;
+  }
+
+  protected static createFromCurrentMetadata(
     metadata: Ark7ModelMetadata,
+    manager: MongooseManager,
   ): MongooseOptions {
+    const options = new MongooseOptions(metadata.name);
+
+    _.each(metadata.fields, (field) => {
+      options.schema[field.propertyName] = field.options;
+    });
+
     _.each(
       Object.getOwnPropertyDescriptors(metadata.modelClass),
       (desc, key) => {
@@ -98,10 +218,14 @@ export class MongooseManager {
 
       if (descriptor == null) {
         if (prop.modifier === runtime.Modifier.PUBLIC && !prop.readonly) {
-          options.schema[prop.name] = {
-            type: this.mapPropertyType(prop.type),
-            required: !prop.optional,
-          };
+          options.schema[prop.name] = _.defaults(
+            {},
+            options.schema[prop.name],
+            {
+              type: manager.mapPropertyType(prop.type),
+              required: !prop.optional,
+            },
+          );
         }
       } else {
         if (descriptor.value && _.isFunction(descriptor.value)) {
@@ -123,68 +247,8 @@ export class MongooseManager {
       }
     });
 
-    options.mongooseSchema.add(options.schema);
-
-    for (const virtual of options.virtuals) {
-      d(
-        'create virtual for %O with name %O and options %O',
-        metadata.name,
-        virtual.name,
-        virtual.options,
-      );
-      let v = options.mongooseSchema.virtual(virtual.name, virtual.options);
-      if (virtual.get) {
-        v = v.get(virtual.get);
-      }
-      if (virtual.set) {
-        v = v.set(virtual.set);
-      }
-    }
-
-    for (const method of options.methods) {
-      d(
-        'create method for %O with name %O and function %O',
-        metadata.name,
-        method.name,
-        method.fn,
-      );
-      options.mongooseSchema.methods[method.name] = method.fn;
-    }
-
-    for (const method of options.statics) {
-      d(
-        'create static function for %O with name %O and function %O',
-        metadata.name,
-        method.name,
-        method.fn,
-      );
-      options.mongooseSchema.statics[method.name] = method.fn;
-    }
-
     return options;
   }
-}
-
-export const mongooseManager = new MongooseManager();
-
-/**
- * Mongoose options for current model.
- */
-export interface MongooseOptions {
-  name?: string;
-  config?: mongoose.SchemaOptions;
-  schema?: {
-    [key: string]: any;
-  };
-  mongooseSchema?: mongoose.Schema;
-  pres?: Pre[];
-  posts?: Post[];
-  virtuals?: Virtual[];
-  methods?: Method[];
-  statics?: Method[];
-  plugins?: Plugin[];
-  indexes?: MongooseIndex[];
-  updateValidators?: UpdateValidator[];
 }
 
 export interface Pre {

@@ -26,7 +26,9 @@ export type MongooseArrayOptions = FieldOptions<{
 
 export interface ValidateOptions {
   validator: () => boolean | Promise<boolean>;
-  message: string | ((props: { value: any }) => string);
+  message:
+    | string
+    | ((props: { type: string; path: string; value: any }) => string);
 }
 
 export type MongooseValidatorOptions = FieldOptions<{
