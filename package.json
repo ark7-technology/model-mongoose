@@ -7,7 +7,7 @@
   "scripts": {
     "compile:src": "tsc --build src/tsconfig.json",
     "compile:test": "npm run compile:src && tsc --build test/tsconfig.json",
-    "test": "npm run compile:src && NODE_ENV=test node_modules/.bin/mocha --trace-warnings --require ts-node/register \"test/**/*.ts\""
+    "test": "npm run compile:src && NODE_ENV=test node_modules/.bin/mocha --trace-warnings --require ts-node/register --exit \"test/**/*.ts\""
   },
   "repository": {
     "type": "git",
@@ -39,9 +39,11 @@
     "typescript": "^4.0.3"
   },
   "dependencies": {
-    "@ark7/model": "^1.0.3",
+    "@ark7/model": "^1.0.4",
+    "@types/debug": "^4.1.5",
     "@types/mongoose": "^5.7.36",
     "@types/underscore": "^1.10.24",
+    "debug": "^4.2.0",
     "mongoose": "^5.10.9",
     "reflect-metadata": "^0.1.13",
     "underscore": "^1.11.0"

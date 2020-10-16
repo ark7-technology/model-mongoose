@@ -1,8 +1,24 @@
-import * as mongoose from 'mongoose';
-import { A7Model, Field } from '@ark7/model';
+import { A7Model } from '@ark7/model';
 
-export class BaseModel {
-  @Field() _id: mongoose.Types.ObjectId;
+@A7Model({})
+export class Name {
+  first: string = 'hello';
+  last: string;
+
+  get fullname(): string {
+    return this.first + ' ' + this.last;
+  }
+
+  greeting(): string {
+    return `Hello, ${this.fullname}`;
+  }
+
+  static createName(): any {
+    return {};
+  }
 }
 
-A7Model.provide(BaseModel);
+@A7Model({})
+export class User {
+  name: Name;
+}
