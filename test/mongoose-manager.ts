@@ -3,15 +3,15 @@ import 'should';
 import { Name, User } from './models/users';
 import { mongooseManager } from '../src';
 
-describe('db', () => {
-  describe('User', () => {
+describe('mongoose-manager', () => {
+  describe('.getMongooseOptions()', () => {
     it('should return expected value for User', () => {
       const mongooseOptions = mongooseManager.getMongooseOptions(User);
       mongooseOptions.should.have.properties({
         name: 'User',
       });
 
-      mongooseOptions.schema.should.have.keys('name');
+      mongooseOptions.schema.should.have.keys('name', 'posts');
 
       // console.log(mongooseOptions.schema);
     });
@@ -45,7 +45,6 @@ describe('db', () => {
           fn: Object.getOwnPropertyDescriptor(Name, 'createName').value,
         },
       ]);
-      // console.log(mongooseOptions.schema);
     });
   });
 });

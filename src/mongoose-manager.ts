@@ -29,12 +29,20 @@ export class MongooseManager {
       return this.mongooseOptionsMap.get(name);
     }
 
-    const mongooseOptions: MongooseOptions = this.createMongooseOptionsFrom(
-      A7Model.getMetadata(model),
-    );
+    const metadata = A7Model.getMetadata(model);
+
+    const mongooseOptions: MongooseOptions = {
+      name: metadata.name,
+      mongooseSchema: new mongoose.Schema(),
+      schema: {},
+      virtuals: [],
+      methods: [],
+      statics: [],
+    };
 
     this.mongooseOptionsMap.set(name, mongooseOptions);
 
+    this.createMongooseOptionsFrom(mongooseOptions, metadata);
     return mongooseOptions;
   }
 
@@ -49,25 +57,25 @@ export class MongooseManager {
         type.referenceName,
       );
 
-      // console.log('reference', referenceMongooseOptions);
-
       return referenceMongooseOptions.mongooseSchema;
+    }
+
+    if (runtime.isArrayType(type)) {
+      const mType = this.mapPropertyType(type.arrayElementType);
+
+      return [
+        {
+          type: mType,
+          default: [],
+        },
+      ];
     }
   }
 
   private createMongooseOptionsFrom(
+    options: MongooseOptions,
     metadata: Ark7ModelMetadata,
   ): MongooseOptions {
-    // console.log(metadata);
-
-    const result: MongooseOptions = {
-      name: metadata.name,
-      schema: {},
-      virtuals: [],
-      methods: [],
-      statics: [],
-    };
-
     _.each(
       Object.getOwnPropertyDescriptors(metadata.modelClass),
       (desc, key) => {
@@ -75,11 +83,10 @@ export class MongooseManager {
           return;
         }
 
-        result.statics.push({
+        options.statics.push({
           name: key,
           fn: desc.value,
         });
-        // console.log(key, prop);
       },
     );
 
@@ -91,14 +98,14 @@ export class MongooseManager {
 
       if (descriptor == null) {
         if (prop.modifier === runtime.Modifier.PUBLIC && !prop.readonly) {
-          result.schema[prop.name] = {
+          options.schema[prop.name] = {
             type: this.mapPropertyType(prop.type),
             required: !prop.optional,
           };
         }
       } else {
         if (descriptor.value && _.isFunction(descriptor.value)) {
-          result.methods.push({ name: prop.name, fn: descriptor.value });
+          options.methods.push({ name: prop.name, fn: descriptor.value });
         }
 
         if (descriptor.get || descriptor.set) {
@@ -111,37 +118,50 @@ export class MongooseManager {
           if (descriptor.set) {
             virtual.set = descriptor.set;
           }
-          result.virtuals.push(virtual);
+          options.virtuals.push(virtual);
         }
       }
     });
 
-    // console.log(metadata.configs.schema.props);
-    // console.log(schema);
+    options.mongooseSchema.add(options.schema);
 
-    result.mongooseSchema = new mongoose.Schema(result.schema);
+    for (const virtual of options.virtuals) {
+      d(
+        'create virtual for %O with name %O and options %O',
+        metadata.name,
+        virtual.name,
+        virtual.options,
+      );
+      let v = options.mongooseSchema.virtual(virtual.name, virtual.options);
+      if (virtual.get) {
+        v = v.get(virtual.get);
+      }
+      if (virtual.set) {
+        v = v.set(virtual.set);
+      }
+    }
 
-    for (const method of result.methods) {
+    for (const method of options.methods) {
       d(
         'create method for %O with name %O and function %O',
         metadata.name,
         method.name,
         method.fn,
       );
-      result.mongooseSchema.methods[method.name] = method.fn;
+      options.mongooseSchema.methods[method.name] = method.fn;
     }
 
-    for (const method of result.statics) {
+    for (const method of options.statics) {
       d(
         'create static function for %O with name %O and function %O',
         metadata.name,
         method.name,
         method.fn,
       );
-      result.mongooseSchema.statics[method.name] = method.fn;
+      options.mongooseSchema.statics[method.name] = method.fn;
     }
 
-    return result;
+    return options;
   }
 }
 

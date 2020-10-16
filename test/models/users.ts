@@ -19,6 +19,15 @@ export class Name {
 }
 
 @A7Model({})
+export class Post {
+  topic: string;
+
+  author: User;
+}
+
+@A7Model({})
 export class User {
   name: Name;
+
+  posts: Post[];
 }
