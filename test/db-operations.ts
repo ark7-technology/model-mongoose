@@ -29,5 +29,15 @@ describe('db', () => {
     }).should.be.rejectedWith(
       'User validation failed: name.first: first must with at least 3 chars, value: ff, name: Validation failed: first: first must with at least 3 chars, value: ff',
     );
+
+    await db.User.create({
+      name: {
+        first: 'ffffff',
+        last: 'wang',
+      },
+      posts: [],
+    }).should.be.rejectedWith(
+      'User validation failed: name.first: Path `first` (`ffffff`) is longer than the maximum allowed length (5)., name: Validation failed: first: Path `first` (`ffffff`) is longer than the maximum allowed length (5).',
+    );
   });
 });

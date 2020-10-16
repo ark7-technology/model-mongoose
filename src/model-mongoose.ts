@@ -24,16 +24,43 @@ export type MongooseArrayOptions = FieldOptions<{
   default?: any;
 }>;
 
-export interface ValidateOptions {
+export interface CustomizedValidate {
   validator: () => boolean | Promise<boolean>;
   message:
     | string
     | ((props: { type: string; path: string; value: any }) => string);
 }
 
-export type MongooseValidatorOptions = FieldOptions<{
-  validate: ValidateOptions;
-}>;
+export interface CustomizedValidatorOptions {
+  validate: CustomizedValidate;
+}
+
+export interface NumberValidatorOptions {
+  min?: number;
+  max?: number;
+}
+
+export interface StringValidatorOptions {
+  enum?: object[];
+  match?: RegExp;
+  minlength?: number;
+  maxlength?: number;
+}
+
+export type ValidateOptions =
+  | CustomizedValidate
+  | NumberValidatorOptions
+  | StringValidatorOptions;
+
+export type MongooseValidatorOptions = FieldOptions<
+  CustomizedValidatorOptions | NumberValidatorOptions | StringValidatorOptions
+>;
+
+export function isCustomizedValidatorOptions(
+  options: ValidateOptions,
+): options is CustomizedValidate {
+  return (options as CustomizedValidate).validator != null;
+}
 
 export type EnumOptions = string[];
 
@@ -94,9 +121,9 @@ export function ArrayField(type: any): PropertyDecorator {
 }
 
 export function Validate(options: ValidateOptions): PropertyDecorator {
-  return Field<MongooseValidatorOptions>({
-    validate: options,
-  });
+  return Field<MongooseValidatorOptions>(
+    isCustomizedValidatorOptions(options) ? { validate: options } : options,
+  );
 }
 
 export function Enum(options: EnumOptions): PropertyDecorator {

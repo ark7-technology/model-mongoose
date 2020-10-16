@@ -247,6 +247,8 @@ export class MongooseOptions {
       }
     });
 
+    // d('create schema for %O with %O', metadata.name, options.schema);
+
     return options;
   }
 }

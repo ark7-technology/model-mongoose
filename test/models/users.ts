@@ -11,6 +11,7 @@ export class Name {
     message: (prop) =>
       `${prop.path} must with at least 3 chars, value: ${prop.value}`,
   })
+  @Validate({ maxlength: 5 })
   first: string = 'hello';
   last?: string;
 
