@@ -1,6 +1,6 @@
 import 'should';
 
-import { Name, Post, User } from './models/users';
+import { Name, Post, User } from './models';
 import { mongooseManager } from '../src';
 
 describe('mongoose-manager', () => {
@@ -52,8 +52,8 @@ describe('mongoose-manager', () => {
 
       mongooseOptions.statics.should.be.deepEqual([
         {
-          name: 'createName',
-          fn: Object.getOwnPropertyDescriptor(Name, 'createName').value,
+          name: 'parse',
+          fn: Object.getOwnPropertyDescriptor(Name, 'parse').value,
         },
       ]);
 

@@ -1,6 +1,6 @@
 import 'should';
 
-import { db } from './models/db';
+import { db } from './db';
 
 describe('db', () => {
   it('should save and read data', async () => {
