@@ -1,6 +1,6 @@
 import 'should';
 
-import { Name, User } from './models/users';
+import { Name, Post, User } from './models/users';
 import { mongooseManager } from '../src';
 
 describe('mongoose-manager', () => {
@@ -12,6 +12,17 @@ describe('mongoose-manager', () => {
       });
 
       mongooseOptions.schema.should.have.keys('name', 'posts');
+
+      mongooseOptions.schema.posts.should.be.deepEqual({
+        required: true,
+        type: [
+          {
+            ref: 'Post',
+            type: 'ObjectId',
+          },
+        ],
+        default: [],
+      });
 
       // console.log(mongooseOptions.schema);
     });
@@ -45,6 +56,29 @@ describe('mongoose-manager', () => {
           fn: Object.getOwnPropertyDescriptor(Name, 'createName').value,
         },
       ]);
+
+      // console.log(mongooseOptions.schema);
+    });
+
+    it('should return expected value for Post', () => {
+      const mongooseOptions = mongooseManager.getMongooseOptions(Post);
+      mongooseOptions.should.have.properties({
+        name: 'Post',
+      });
+
+      mongooseOptions.schema.should.have.keys('topic', 'author');
+
+      mongooseOptions.schema.should.be.deepEqual({
+        author: {
+          required: true,
+          ref: 'User',
+          type: 'ObjectId',
+        },
+        topic: {
+          required: true,
+          type: String,
+        },
+      });
 
       // console.log(mongooseOptions.schema);
     });

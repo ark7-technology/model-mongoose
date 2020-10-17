@@ -1,10 +1,6 @@
 import { Field, FieldOptions } from '@ark7/model';
 import { SchemaTypes } from 'mongoose';
 
-export type MongooseRequiredOptions = FieldOptions<{
-  required?: boolean | Function;
-}>;
-
 export type MongooseIndexOptions = FieldOptions<{
   index?: boolean;
   unique?: boolean;
@@ -75,17 +71,10 @@ export type MongooseDBRefOptions = FieldOptions<{
 }>;
 
 export type MongooseFieldOption =
-  | MongooseRequiredOptions
   | MongooseIndexOptions
   | MongooseDefaultOptions
   | MongooseMapOptions
   | MongooseDBRefOptions;
-
-export function Required(
-  required: boolean | Function = true,
-): PropertyDecorator {
-  return Field<MongooseFieldOption>({ required });
-}
 
 export function Optional(): PropertyDecorator {
   return Field();

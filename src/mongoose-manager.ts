@@ -45,7 +45,7 @@ export class MongooseManager {
   mapPropertyType(type: runtime.Type): any {
     switch (type) {
       case 'string':
-        return String;
+        return { type: String };
     }
 
     if (runtime.isReferenceType(type)) {
@@ -53,18 +53,32 @@ export class MongooseManager {
         type.referenceName,
       );
 
-      return referenceMongooseOptions.mongooseSchema;
+      return { type: referenceMongooseOptions.mongooseSchema };
     }
 
     if (runtime.isArrayType(type)) {
       const mType = this.mapPropertyType(type.arrayElementType);
 
-      return [
-        {
-          type: mType,
-          default: [],
-        },
-      ];
+      return {
+        type: [mType],
+        default: [],
+      };
+    }
+
+    if (runtime.isParameterizedType(type)) {
+      const mType = this.mapPropertyType(type.typeArgumentType);
+
+      switch (type.selfType) {
+        case 'Ref':
+          if (runtime.isReferenceType(type.typeArgumentType)) {
+            return {
+              type: 'ObjectId',
+              ref: type.typeArgumentType.referenceName,
+            };
+          }
+      }
+
+      return mType;
     }
   }
 }
@@ -218,13 +232,19 @@ export class MongooseOptions {
 
       if (descriptor == null) {
         if (prop.modifier === runtime.Modifier.PUBLIC && !prop.readonly) {
+          const type = manager.mapPropertyType(prop.type);
+
           options.schema[prop.name] = _.defaults(
             {},
             options.schema[prop.name],
-            {
-              type: manager.mapPropertyType(prop.type),
-              required: !prop.optional,
-            },
+            _.isObject(type) && !_.isFunction(type) && type.type != null
+              ? _.extend(type, {
+                  required: !prop.optional,
+                })
+              : {
+                  type,
+                  required: !prop.optional,
+                },
           );
         }
       } else {
@@ -247,7 +267,7 @@ export class MongooseOptions {
       }
     });
 
-    // d('create schema for %O with %O', metadata.name, options.schema);
+    d('create schema for %O with %O', metadata.name, options.schema);
 
     return options;
   }

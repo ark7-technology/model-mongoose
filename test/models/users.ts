@@ -1,4 +1,4 @@
-import { A7Model } from '@ark7/model';
+import { A7Model, Ref } from '@ark7/model';
 
 import { Validate } from '../../src';
 
@@ -32,12 +32,12 @@ export class Name {
 export class Post {
   topic: string;
 
-  author: User;
+  author: Ref<User>;
 }
 
 @A7Model({})
 export class User {
   name: Name;
 
-  posts: Post[];
+  posts: Ref<Post>[];
 }

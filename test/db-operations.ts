@@ -40,4 +40,14 @@ describe('db', () => {
       'User validation failed: name.first: Path `first` (`ffffff`) is longer than the maximum allowed length (5)., name: Validation failed: first: Path `first` (`ffffff`) is longer than the maximum allowed length (5).',
     );
   });
+
+  it('should save posts data', async () => {
+    // const user = await db.User.create({
+    // name: {
+    // first: 'fff',
+    // last: 'wang',
+    // },
+    // posts: [],
+    // });
+  });
 });
