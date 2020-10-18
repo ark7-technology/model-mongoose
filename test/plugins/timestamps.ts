@@ -2,27 +2,48 @@ import 'should';
 
 import { A7Model } from '@ark7/model';
 
-import { mongooseManager } from '../../src';
+import { MongoosePluginPeriod, hasModelName, mongooseManager } from '../../src';
+import {
+  createdAtPlugin,
+  lastUpdateTimePlugin,
+} from '../../src/plugins/timestamps';
+
+mongooseManager.plugin(MongoosePluginPeriod.BEFORE_REGISTER, {
+  suitable: hasModelName('TestTimestampPluginModel'),
+  fn: createdAtPlugin(),
+});
+mongooseManager.plugin(MongoosePluginPeriod.BEFORE_REGISTER, {
+  suitable: hasModelName('TestTimestampPluginModel'),
+  fn: lastUpdateTimePlugin(),
+});
 
 describe('plugin', () => {
-  describe('.hasField()', () => {
+  describe('timestamp', () => {
     @A7Model({})
     class TestTimestampPluginModel {
+      val: string;
       createdAt?: Date;
       lastUpdateTime?: Date;
     }
 
-    // it('should return true for an existing field', () => {
-    // const o = mongooseManager.getMongooseOptions(TestTimestampPluginModel);
+    const Model = mongooseManager.register<TestTimestampPluginModel>(
+      TestTimestampPluginModel,
+    );
+    type Model = TestTimestampPluginModel;
 
-    // hasField('createdAt')(o).should.be.true();
-    // hasField('lastUpdateTime')(o).should.be.true();
-    // });
+    it('should auto generate createdAt and lastUpdateTime value', async () => {
+      const ins = await Model.create({ val: '1' });
+      ins.createdAt.should.be.not.be.null();
+      ins.lastUpdateTime.should.be.not.be.null();
 
-    // it('should return false for a non-existing field', () => {
-    // const o = mongooseManager.getMongooseOptions(TestTimestampPluginModel);
+      const ins2 = await Model.findById(ins._id);
+      ins2.val = '2';
+      await ins2.save();
 
-    // hasField('non-existing')(o).should.be.false();
-    // });
+      ins.createdAt.getTime().should.be.equal(ins2.createdAt.getTime());
+      ins.lastUpdateTime
+        .getTime()
+        .should.not.be.equal(ins2.lastUpdateTime.getTime());
+    });
   });
 });

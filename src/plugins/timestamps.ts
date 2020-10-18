@@ -4,6 +4,13 @@ import { MongooseOptionsPlugin } from '../plugin';
 export function createdAtPlugin(
   fieldName: string = 'createdAt',
 ): MongooseOptionsPlugin {
+  function setCreatedAtTimeOnSave(next: () => void) {
+    if (this[fieldName] == null) {
+      this[fieldName] = Date.now();
+    }
+    next();
+  }
+
   function setCreatedAtTimeOnUpdate(next: () => void) {
     this.update(
       {},
@@ -17,7 +24,12 @@ export function createdAtPlugin(
   }
 
   return (options: MongooseOptions) => {
-    options.mongooseSchema.pre('save', false, setCreatedAtTimeOnUpdate);
+    options.mongooseSchema.pre('save', false, setCreatedAtTimeOnSave);
+    options.mongooseSchema.pre(
+      'findOneAndUpdate',
+      false,
+      setCreatedAtTimeOnUpdate,
+    );
   };
 }
 
@@ -42,7 +54,11 @@ export function lastUpdateTimePlugin(
   }
 
   return (options: MongooseOptions) => {
-    options.mongooseSchema.pre('save', false, setLastUpdateTimeOnUpdate);
     options.mongooseSchema.pre('save', false, setLastUpdateTimeOnSave);
+    options.mongooseSchema.pre(
+      'findOneAndUpdate',
+      false,
+      setLastUpdateTimeOnUpdate,
+    );
   };
 }

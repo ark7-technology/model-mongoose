@@ -44,10 +44,31 @@ export class MongooseManager {
       );
   }
 
+  protected runPlugin(period: MongoosePluginPeriod, options: MongooseOptions) {
+    const plugins: MongooseOptionsPluginOptions[] =
+      this.plugins.get(period) || [];
+
+    for (const plugin of plugins) {
+      if (!plugin.suitable(options)) {
+        continue;
+      }
+
+      d(
+        'run suitable plugin for period %O with function %O',
+        period,
+        plugin.fn,
+      );
+
+      plugin.fn(options);
+    }
+  }
+
   register<T>(
     cls: string | ModelClass<T>,
   ): mongoose.Model<ModifiedDocument<mongoose.Document & T>> {
     const mongooseOptions = this.getMongooseOptions(cls);
+
+    this.runPlugin(MongoosePluginPeriod.BEFORE_REGISTER, mongooseOptions);
 
     return mongoose.model(
       mongooseOptions.name,

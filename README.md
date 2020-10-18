@@ -114,3 +114,43 @@ const y = await db.User.findById(x._id);
 
 y.name.fullname.should.be.equals('fff wang');
 ```
+
+## Advanced Features
+
+### Timestamp Plugins
+
+```typescript
+// models/base.ts
+
+class BaseModel {
+  createdAt?: Date;
+  lastUpdateTime?: Date;
+}
+
+// models/users.ts
+@A7Model({})
+export class User extends BaseModel {
+  name: Name;
+}
+
+// db.ts
+
+import { mongooseManager } from '@ark7/model-mongoose';
+import {
+  createdAtPlugin,
+  lastUpdateTimePlugin,
+} from '@ark7/model-mongoose/plugins/timestamps';
+
+import { User as _User } from './models';
+
+mongooseManager.plugin(MongoosePluginPeriod.BEFORE_REGISTER, createdAtPlugin());
+mongooseManager.plugin(
+  MongoosePluginPeriod.BEFORE_REGISTER,
+  lastUpdateTimePlugin(),
+);
+
+export namespace db {
+  export const User = mongooseManager.register<_User>(_User);
+  export type User = _User;
+}
+```
