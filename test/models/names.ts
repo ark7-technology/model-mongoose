@@ -1,9 +1,10 @@
 import { A7Model } from '@ark7/model';
 
+import { BaseModel } from './base';
 import { Validate } from '../../src';
 
 @A7Model({})
-export class Name {
+export class Name extends BaseModel {
   @Validate({
     validator: function (this: Name) {
       return this.first.length >= 3;

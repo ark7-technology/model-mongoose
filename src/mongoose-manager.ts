@@ -4,18 +4,49 @@ import debug from 'debug';
 import { A7Model, Ark7ModelMetadata, ModelClass, runtime } from '@ark7/model';
 import { MongoError } from 'mongodb';
 
+import {
+  MongooseOptionsPlugin,
+  MongooseOptionsPluginOptions,
+  MongoosePluginPeriod,
+  TRUE_SUITABLE,
+} from './plugin';
+
 const d = debug('ark7:model-mongoose:mongoose-manager');
+
+export type ModifiedDocument<T> = Omit<T, '_id'> & {
+  _id: mongoose.Types.ObjectId;
+};
 
 export class MongooseManager {
   private mongooseOptionsMap: Map<string, MongooseOptions> = new Map();
+
+  plugins: Map<
+    MongoosePluginPeriod,
+    MongooseOptionsPluginOptions[]
+  > = new Map();
 
   constructor(private mongoose?: mongoose.Mongoose) {
     this.mongoose = this.mongoose ?? mongoose;
   }
 
+  plugin(
+    period: MongoosePluginPeriod,
+    plugin: MongooseOptionsPluginOptions | MongooseOptionsPlugin,
+  ) {
+    if (!this.plugins.has(period)) {
+      this.plugins.set(period, []);
+    }
+
+    this.plugins
+      .get(period)
+      .push(
+        _.isFunction(plugin) ? { suitable: TRUE_SUITABLE, fn: plugin } : plugin,
+      );
+  }
+
   register<T>(
     cls: string | ModelClass<T>,
-  ): mongoose.Model<mongoose.Document & T> {
+  ): mongoose.Model<ModifiedDocument<mongoose.Document & T>> {
     const mongooseOptions = this.getMongooseOptions(cls);
 
     return mongoose.model(
@@ -49,11 +80,16 @@ export class MongooseManager {
     }
 
     if (runtime.isReferenceType(type)) {
-      const referenceMongooseOptions = this.getMongooseOptions(
-        type.referenceName,
-      );
+      switch (type.referenceName) {
+        case 'Date':
+          return { type: Date };
+        default:
+          const referenceMongooseOptions = this.getMongooseOptions(
+            type.referenceName,
+          );
 
-      return { type: referenceMongooseOptions.mongooseSchema };
+          return { type: referenceMongooseOptions.mongooseSchema };
+      }
     }
 
     if (runtime.isArrayType(type)) {
@@ -104,6 +140,14 @@ export class MongooseOptions {
   updateValidators: UpdateValidator[] = [];
 
   constructor(public name: string) {}
+
+  methodNames(): string[] {
+    return _.map(this.methods, (m) => m.name);
+  }
+
+  fieldNames(): string[] {
+    return _.keys(this.schema);
+  }
 
   clone(): MongooseOptions {
     const ret = new MongooseOptions(this.name);
