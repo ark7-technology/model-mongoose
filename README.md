@@ -31,11 +31,11 @@ Add transform plugin to tsconfig.json:
 ```typescript
 // models/names.ts
 
-import { A7Model } from '@ark7/model';
+import { A7Model, StrictModel } from '@ark7/model';
 import { Validate } from '@ark7/model-mongoose';
 
 @A7Model({})
-export class Name {
+export class Name extends StrictModel {
   @Validate({ minlength: 5 })
   first: string;
 
@@ -54,25 +54,25 @@ export class Name {
 
 // models/users.ts
 
-import { A7Model, Ref } from '@ark7/model';
+import { A7Model, Model, Ref } from '@ark7/model';
 
 import { Name } from './names';
 import { Post } from './posts';
 
 @A7Model({})
-export class User {
+export class User extends Model {
   name: Name;
 
   posts: Ref<Post>[];
 }
 
 // models/posts.ts
-import { A7Model, Ref } from '@ark7/model';
+import { A7Model, Model, Ref } from '@ark7/model';
 
 import { User } from './users';
 
 @A7Model({})
-export class Post {
+export class Post extends Model {
   topic: string;
 
   author: Ref<User>;

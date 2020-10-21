@@ -22,16 +22,6 @@ describe('db', () => {
   it('should trigger validation', async () => {
     await db.User.create({
       name: {
-        first: 'ff',
-        last: 'wang',
-      },
-      posts: [],
-    }).should.be.rejectedWith(
-      'User validation failed: name.first: first must with at least 3 chars, value: ff, name: Validation failed: first: first must with at least 3 chars, value: ff',
-    );
-
-    await db.User.create({
-      name: {
         first: 'ffffff',
         last: 'wang',
       },

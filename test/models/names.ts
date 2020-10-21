@@ -1,20 +1,14 @@
-import { A7Model, Model } from '@ark7/model';
+import _ from 'underscore';
+import { A7Model, StrictModel } from '@ark7/model';
 
 import { Validate } from '../../src';
 
 @A7Model({})
-export class Name extends Model {
-  @Validate({
-    validator: function (this: Name) {
-      return this.first.length >= 3;
-    },
-    message: (prop) =>
-      `${prop.path} must with at least 3 chars, value: ${prop.value}`,
-  })
+export class Name extends StrictModel {
   @Validate({ maxlength: 5 })
   first: string;
 
-  last?: string;
+  last: string;
 
   get fullname(): string {
     return this.first + ' ' + this.last;
@@ -25,6 +19,10 @@ export class Name extends Model {
   }
 
   static parse(name: string): Name {
-    return null;
+    const parts = name.split(' ');
+    return Name.modelize({
+      first: _.first(parts),
+      last: _.last(parts),
+    });
   }
 }

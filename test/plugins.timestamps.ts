@@ -2,11 +2,11 @@ import 'should';
 
 import { A7Model } from '@ark7/model';
 
-import { MongoosePluginPeriod, hasModelName, mongooseManager } from '../../src';
+import { MongoosePluginPeriod, hasModelName, mongooseManager } from '../src';
 import {
   createdAtPlugin,
   lastUpdateTimePlugin,
-} from '../../src/plugins/timestamps';
+} from '../src/plugins/timestamps';
 
 mongooseManager.plugin(MongoosePluginPeriod.BEFORE_REGISTER, {
   suitable: hasModelName('TestTimestampPluginModel'),
