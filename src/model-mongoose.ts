@@ -15,11 +15,6 @@ export type MongooseMapOptions = FieldOptions<{
   of: any;
 }>;
 
-export type MongooseArrayOptions = FieldOptions<{
-  type: [any];
-  default?: any;
-}>;
-
 export interface CustomizedValidate {
   validator: () => boolean | Promise<boolean>;
   message:
@@ -76,25 +71,6 @@ export type MongooseFieldOption =
   | MongooseMapOptions
   | MongooseDBRefOptions;
 
-export function Optional(): PropertyDecorator {
-  return Field();
-}
-
-export function Index(options: { unique?: boolean } = {}): PropertyDecorator {
-  return Field<MongooseIndexOptions>({
-    index: true,
-    unique: options.unique || false,
-  });
-}
-
-export function Unique(): PropertyDecorator {
-  return Index({ unique: true });
-}
-
-export function Default(value: any): PropertyDecorator {
-  return Field<MongooseDefaultOptions>({ default: value });
-}
-
 export function MapField(type: any): PropertyDecorator {
   return Field<MongooseMapOptions>({
     type: Map,
@@ -103,7 +79,7 @@ export function MapField(type: any): PropertyDecorator {
 }
 
 export function ArrayField(type: any): PropertyDecorator {
-  return Field<MongooseArrayOptions>({
+  return Field({
     type: [type],
     default: [],
   });

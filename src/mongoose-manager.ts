@@ -272,7 +272,7 @@ export class MongooseOptions {
     const options = new MongooseOptions(metadata.name);
 
     _.each(metadata.fields, (field) => {
-      options.schema[field.propertyName] = field.options;
+      options.schema[field.name] = field.options;
     });
 
     _.each(
