@@ -117,6 +117,35 @@ y.name.fullname.should.be.equals('fff wang');
 
 ## Advanced Features
 
+### Field Index
+
+```typescript
+@A7Model({})
+export class User {
+  @Unique()
+  email: string;
+
+  // Sometimes the field is optional.
+  @Unique({ sparse: true })
+  token: string;
+
+  // If the field is not unique.
+  @Index()
+  name: string;
+}
+```
+
+### Compound Index
+
+```typescript
+@A7Model({})
+@CompoundIndex({ user: 1, date: 1 }, { unique: true })
+export class Order {
+  user: Ref<User>;
+  date: Date;
+}
+```
+
 ### Timestamp Plugins
 
 ```typescript
