@@ -70,10 +70,18 @@ export class MongooseManager {
 
     this.runPlugin(MongoosePluginPeriod.BEFORE_REGISTER, mongooseOptions);
 
-    return mongoose.model(
+    const model = mongoose.model(
       mongooseOptions.name,
       mongooseOptions.mongooseSchema,
     ) as any;
+
+    model.on('index', (err: any) => {
+      if (err) {
+        throw new Error(`${mongooseOptions.name} index error: ${err}`);
+      }
+    });
+
+    return model;
   }
 
   getMongooseOptions(model: string | ModelClass<any>): MongooseOptions {
@@ -262,6 +270,16 @@ export class MongooseOptions {
       this.mongooseSchema.statics[method.name] = method.fn;
     }
 
+    for (const index of this.indexes) {
+      d(
+        'create index for %O with fields %O and options %O',
+        this.name,
+        index.fields,
+        index.options,
+      );
+      this.mongooseSchema.index(index.fields, index.options);
+    }
+
     return this;
   }
 
@@ -331,6 +349,8 @@ export class MongooseOptions {
         }
       }
     });
+
+    options.indexes = metadata.configs.indexes || [];
 
     d('create schema for %O with %O', metadata.name, options.schema);
 
