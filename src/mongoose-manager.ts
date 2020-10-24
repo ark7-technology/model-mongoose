@@ -65,10 +65,15 @@ export class MongooseManager {
 
   register<T>(
     cls: string | ModelClass<T>,
+    options?: mongoose.SchemaOptions,
   ): mongoose.Model<ModifiedDocument<mongoose.Document & T>> {
     const mongooseOptions = this.getMongooseOptions(cls);
 
     this.runPlugin(MongoosePluginPeriod.BEFORE_REGISTER, mongooseOptions);
+
+    _.each(options, (value, key: keyof mongoose.SchemaOptions) => {
+      mongooseOptions.mongooseSchema.set(key, value);
+    });
 
     const model = mongoose.model(
       mongooseOptions.name,

@@ -86,15 +86,33 @@ export class Post extends Model {
 
 import { mongooseManager } from '@ark7/model-mongoose';
 
-import { Post as _Post, User as _User } from './models';
+import * as models from './models';
 
 export namespace db {
-  export const User = mongooseManager.register<_User>(_User);
-  export type User = _User;
+  export const User = mongooseManager.register(models.User);
+  export type User = models.User;
 
-  export const Post = mongooseManager.register<_Post>(_Post);
-  export type Post = _Post;
+  export const Post = mongooseManager.register(models.Post);
+  export type Post = models.Post;
 }
+```
+
+#### Mongoose Configurations
+
+Set [mongoose configurations](https://mongoosejs.com/docs/api/schema.html) like
+`collection name`, `capped`, etc.
+
+```typescript
+// db.ts
+
+import { mongooseManager } from '@ark7/model-mongoose';
+
+import * as models from './models';
+
+export const User = mongooseManager.register(models.User, {
+  collection: 'users',
+});
+export type User = models.User;
 ```
 
 ### Usage
