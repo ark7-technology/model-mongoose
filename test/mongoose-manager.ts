@@ -1,5 +1,7 @@
 import 'should';
 
+import { StrictModel } from '@ark7/model';
+
 import { Name, Post, User } from './models';
 import { mongooseManager } from '../src';
 
@@ -47,6 +49,11 @@ describe('mongoose-manager', () => {
         {
           name: 'greeting',
           fn: Object.getOwnPropertyDescriptor(Name.prototype, 'greeting').value,
+        },
+        {
+          name: 'toJSON',
+          fn: Object.getOwnPropertyDescriptor(StrictModel.prototype, 'toJSON')
+            .value,
         },
       ]);
 

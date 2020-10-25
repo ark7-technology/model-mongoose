@@ -294,8 +294,56 @@ export class MongooseOptions {
   ): MongooseOptions {
     const options = new MongooseOptions(metadata.name);
 
-    _.each(metadata.fields, (field) => {
-      options.schema[field.name] = field.options;
+    metadata.combinedFields.forEach((field) => {
+      if (['_id', 'toObject', '$attach'].indexOf(field.name) >= 0) {
+        return;
+      }
+      const target: any = _.defaults({}, field.field);
+      const prop = field.prop;
+      const descriptor = field.descriptor;
+
+      if (field.descriptor == null) {
+        if (
+          field.prop.modifier === runtime.Modifier.PUBLIC &&
+          !field.prop.readonly
+        ) {
+          const type = manager.mapPropertyType(field.prop.type);
+
+          _.defaults(
+            target,
+            options.schema[prop.name],
+            _.isObject(type) && !_.isFunction(type) && type.type != null
+              ? _.extend(type, {
+                  required: !prop.optional,
+                })
+              : {
+                  type,
+                  required: !prop.optional,
+                },
+          );
+        }
+      } else {
+        if (descriptor.value && _.isFunction(descriptor.value)) {
+          options.methods.push({ name: prop.name, fn: descriptor.value });
+          return;
+        }
+
+        if (descriptor.get || descriptor.set) {
+          const virtual: Virtual = {
+            name: prop.name,
+          };
+          if (descriptor.get) {
+            virtual.get = descriptor.get;
+          }
+          if (descriptor.set) {
+            virtual.set = descriptor.set;
+          }
+          options.virtuals.push(virtual);
+          return;
+        }
+      }
+
+      options.schema[field.name] = target;
     });
 
     _.each(
@@ -311,49 +359,6 @@ export class MongooseOptions {
         });
       },
     );
-
-    _.each(metadata.configs.schema.props, (prop) => {
-      const descriptor = Object.getOwnPropertyDescriptor(
-        metadata.modelClass.prototype,
-        prop.name,
-      );
-
-      if (descriptor == null) {
-        if (prop.modifier === runtime.Modifier.PUBLIC && !prop.readonly) {
-          const type = manager.mapPropertyType(prop.type);
-
-          options.schema[prop.name] = _.defaults(
-            {},
-            options.schema[prop.name],
-            _.isObject(type) && !_.isFunction(type) && type.type != null
-              ? _.extend(type, {
-                  required: !prop.optional,
-                })
-              : {
-                  type,
-                  required: !prop.optional,
-                },
-          );
-        }
-      } else {
-        if (descriptor.value && _.isFunction(descriptor.value)) {
-          options.methods.push({ name: prop.name, fn: descriptor.value });
-        }
-
-        if (descriptor.get || descriptor.set) {
-          const virtual: Virtual = {
-            name: prop.name,
-          };
-          if (descriptor.get) {
-            virtual.get = descriptor.get;
-          }
-          if (descriptor.set) {
-            virtual.set = descriptor.set;
-          }
-          options.virtuals.push(virtual);
-        }
-      }
-    });
 
     options.indexes = metadata.configs.indexes || [];
 
