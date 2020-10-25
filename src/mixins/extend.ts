@@ -70,7 +70,7 @@ CombinedModelField.prototype.autogenFields = _.memoize(function (
 
   const type = this.type;
 
-  if (runtime.isReferenceType(type)) {
+  if (runtime.isReferenceType(type) && type.referenceName !== 'ID') {
     const metadata = manager.getMetadata(type.referenceName);
     const nested = _.map(
       metadata.autogenFields(manager),
@@ -94,7 +94,7 @@ CombinedModelField.prototype.readonlyFields = _.memoize(function (
 
   const type = this.type;
 
-  if (runtime.isReferenceType(type)) {
+  if (runtime.isReferenceType(type) && type.referenceName !== 'ID') {
     const metadata = manager.getMetadata(type.referenceName);
     const nested = _.map(
       metadata.readonlyFields(manager),

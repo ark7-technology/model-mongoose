@@ -12,6 +12,10 @@ import {
   TRUE_SUITABLE,
 } from './plugin';
 
+declare module '@ark7/model/core/model' {
+  interface ID extends mongoose.Types.ObjectId {}
+}
+
 const d = debug('ark7:model-mongoose:mongoose-manager');
 
 export type ModifiedDocument<T> = Omit<T, '_id'> & {
@@ -125,6 +129,9 @@ export class MongooseManager {
     switch (type) {
       case 'string':
         return { type: String };
+
+      case 'ID':
+        return { type: mongoose.SchemaTypes.ObjectId };
     }
 
     if (runtime.isReferenceType(type)) {
