@@ -63,11 +63,11 @@ export class MongooseManager {
     }
   }
 
-  register<T>(
-    cls: string | ModelClass<T>,
+  register<T, P extends ModelClass<T>>(
+    cls: P,
     options?: mongoose.SchemaOptions,
-  ): mongoose.Model<ModifiedDocument<mongoose.Document & T>> {
-    const mongooseOptions = this.getMongooseOptions(cls);
+  ): mongoose.Model<ModifiedDocument<mongoose.Document & InstanceType<P>>> & P {
+    const mongooseOptions = this.getMongooseOptions(cls as any);
 
     this.runPlugin(MongoosePluginPeriod.BEFORE_REGISTER, mongooseOptions);
 
@@ -346,19 +346,20 @@ export class MongooseOptions {
       options.schema[field.name] = target;
     });
 
-    _.each(
-      Object.getOwnPropertyDescriptors(metadata.modelClass),
-      (desc, key) => {
-        if (['name', 'prototype', 'length'].indexOf(key) >= 0) {
+    for (const cls of metadata.classes.reverse()) {
+      _.each(Object.getOwnPropertyDescriptors(cls), (desc, key) => {
+        if (['name', 'prototype', 'length', 'modelize'].indexOf(key) >= 0) {
           return;
         }
 
-        options.statics.push({
-          name: key,
-          fn: desc.value,
-        });
-      },
-    );
+        if (_.find(options.statics, (s) => s.name === key) == null) {
+          options.statics.push({
+            name: key,
+            fn: desc.value,
+          });
+        }
+      });
+    }
 
     options.indexes = metadata.configs.indexes || [];
 

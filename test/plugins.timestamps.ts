@@ -26,9 +26,7 @@ describe('plugin', () => {
       lastUpdateTime?: Date;
     }
 
-    const Model = mongooseManager.register<TestTimestampPluginModel>(
-      TestTimestampPluginModel,
-    );
+    const Model = mongooseManager.register(TestTimestampPluginModel);
     type Model = TestTimestampPluginModel;
 
     it('should auto generate createdAt and lastUpdateTime value', async () => {
