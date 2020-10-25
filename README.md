@@ -148,6 +148,19 @@ y.name.fullname.should.be.equals('fff wang');
 
 ## Advanced Features
 
+### Default
+
+```typescript
+@A7Model({})
+export class BasicDefaultModel {
+  @Default('foo') foo?: string;
+}
+```
+
+### Readonly
+
+### Data Level
+
 ### Field Index
 
 ```typescript
