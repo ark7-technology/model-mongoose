@@ -5,16 +5,16 @@
 
 ## Table of Contents
 
-- [Installation](##installation)
-- [Quick Start](##quick-start)
-  - [Define Models](###define-models)
-  - [Register Models](###register-models)
-    - [Mongoose Configurations](###mongoose-configurations)
-  - [Usage](###usage)
-- [Advanced Features](###advanced-features)
-  - [Field Index](###field-index)
-  - [Compound Index](###compound-index)
-  - [Timestamp Plugins](###timestamp-plugins)
+- [Installation](#installation)
+- [Quick Start](#quick-start)
+  - [Define Models](#define-models)
+  - [Register Models](#register-models)
+    - [Mongoose Configurations](#mongoose-configurations)
+  - [Usage](#usage)
+- [Advanced Features](#advanced-features)
+  - [Field Index](#field-index)
+  - [Compound Index](#compound-index)
+  - [Timestamp Plugins](#timestamp-plugins)
 
 ## Installation
 
