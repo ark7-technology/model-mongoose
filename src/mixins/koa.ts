@@ -1,6 +1,6 @@
 import * as mongoose from 'mongoose';
 import _ from 'underscore';
-import { AsObject, Manager, manager as _manager } from '@ark7/model';
+import { A7Model, AsObject, Manager, manager as _manager } from '@ark7/model';
 import { IMiddleware, IRouterContext } from 'koa-router';
 import { NodesworkError } from '@nodeswork/utils';
 import { withInheritedProps as dotty } from 'object-path';
@@ -36,7 +36,11 @@ export interface IOverwrites {
 export const READONLY = 'READONLY';
 export const AUTOGEN = 'AUTOGEN';
 
+@A7Model({})
 export class MongooseKoa extends MongooseModel {
+  /**
+   * Returns Koa create middleware.
+   */
   public static createMiddleware(
     options: CreateOptions,
     manager: Manager = _manager,
@@ -44,27 +48,22 @@ export class MongooseKoa extends MongooseModel {
     const metadata = this.getMetadata(manager);
     const self = this.cast();
 
-    _.defaults(options, DEFAULT_COMMON_OPTIONS);
+    options = _.defaults({}, options, DEFAULT_COMMON_OPTIONS);
 
     async function create(ctx: IRouterContext, next: INext) {
-      const opts = _.extend(
-        {},
-        options,
-        ctx.overrides && ctx.overrides.options,
-      );
-      const rModel = self;
+      const opts = _.extend({}, options, ctx.overrides?.options);
       const omits = _.union(['_id'], opts.omits, metadata.autogenFields());
       let doc = _.omit(ctx.request.body, omits);
       doc = _.extend(doc, ctx.overrides && ctx.overrides.doc);
 
-      (ctx as any)[opts.target] = doc;
+      dotty.set(ctx, opts.target, doc);
 
       if (opts.triggerNext) {
         await next();
       }
 
-      doc = (ctx as any)[opts.target];
-      let object: AsObject<MongooseKoa> = (await rModel.create(doc)) as any;
+      doc = dotty.get(ctx, opts.target);
+      let object: AsObject<MongooseKoa> = (await self.create(doc)) as any;
 
       if (opts.project || opts.level) {
         object = await self.findById(
@@ -74,9 +73,10 @@ export class MongooseKoa extends MongooseModel {
         );
       }
 
-      (ctx as any)[opts.target] = object;
+      dotty.set(ctx, opts.target, object);
+
       if (opts.populate) {
-        await rModel.populate(object, opts.populate);
+        await self.populate(object, opts.populate);
       }
 
       if (!opts.noBody) {

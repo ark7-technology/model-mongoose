@@ -4,6 +4,7 @@ import debug from 'debug';
 import { A7Model, Ark7ModelMetadata, ModelClass, runtime } from '@ark7/model';
 import { MongoError } from 'mongodb';
 
+import { MongooseKoa } from './mixins/koa';
 import {
   MongooseOptionsPlugin,
   MongooseOptionsPluginOptions,
@@ -66,14 +67,27 @@ export class MongooseManager {
   register<T, P extends ModelClass<T>>(
     cls: P,
     options?: mongoose.SchemaOptions,
-  ): mongoose.Model<ModifiedDocument<mongoose.Document & InstanceType<P>>> & P {
+  ): mongoose.Model<ModifiedDocument<mongoose.Document & InstanceType<P>>> &
+    P &
+    typeof MongooseKoa {
     const mongooseOptions = this.getMongooseOptions(cls as any);
+
+    mongooseOptions.updateMetadata(A7Model.getMetadata(MongooseKoa), this);
 
     this.runPlugin(MongoosePluginPeriod.BEFORE_REGISTER, mongooseOptions);
 
-    _.each(options, (value, key: keyof mongoose.SchemaOptions) => {
-      mongooseOptions.mongooseSchema.set(key, value);
-    });
+    _.each(
+      _.extend(
+        {
+          versionKey: false,
+          flattenMaps: true,
+        },
+        options,
+      ),
+      (value, key: keyof mongoose.SchemaOptions) => {
+        mongooseOptions.mongooseSchema.set(key, value);
+      },
+    );
 
     const model = mongoose.model(
       mongooseOptions.name,
