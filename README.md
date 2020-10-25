@@ -3,6 +3,19 @@
 @ark7/model-mongoose is a mongodb adaptor for
 [@ark7/model](https://github.com/ark7-technology/model).
 
+## Table of Contents
+
+- [Installation](##installation)
+- [Quick Start](##quick-start)
+  - [Define Models](###define-models)
+  - [Register Models](###register-models)
+    - [Mongoose Configurations](###mongoose-configurations)
+  - [Usage](###usage)
+- [Advanced Features](###advanced-features)
+  - [Field Index](###field-index)
+  - [Compound Index](###compound-index)
+  - [Timestamp Plugins](###timestamp-plugins)
+
 ## Installation
 
 Install the dependencies package:
