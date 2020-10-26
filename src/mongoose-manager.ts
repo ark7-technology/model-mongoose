@@ -1,7 +1,13 @@
 import * as mongoose from 'mongoose';
 import _ from 'underscore';
 import debug from 'debug';
-import { A7Model, Ark7ModelMetadata, ModelClass, runtime } from '@ark7/model';
+import {
+  A7Model,
+  Ark7ModelMetadata,
+  AsObject,
+  ModelClass,
+  runtime,
+} from '@ark7/model';
 import { MongoError } from 'mongodb';
 
 import { MongooseKoa } from './mixins/koa';
@@ -71,7 +77,7 @@ export class MongooseManager {
   register<T, P extends ModelClass<T>>(
     cls: P,
     options?: mongoose.SchemaOptions,
-  ): mongoose.Model<ModifiedDocument<mongoose.Document & InstanceType<P>>> &
+  ): mongoose.Model<mongoose.Document & ModifiedDocument<InstanceType<P>>> &
     P &
     typeof MongooseKoa {
     const mongooseOptions = this.getMongooseOptions(cls as any);
