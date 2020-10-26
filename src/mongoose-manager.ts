@@ -175,9 +175,13 @@ export class MongooseManager {
           }
 
         case 'MMap':
+          const subType = this.mapPropertyType(type.typeArgumentType);
+          if (subType == null) {
+            throw new Error(`Unable to locate type ${type}`);
+          }
           return {
             type: Map,
-            of: this.mapPropertyType(type.typeArgumentType).type,
+            of: subType.type,
           };
       }
 
@@ -270,7 +274,12 @@ export class MongooseOptions {
   }
 
   protected updateMongooseSchema(): this {
-    this.mongooseSchema.add(this.schema);
+    try {
+      this.mongooseSchema.add(this.schema);
+    } catch (error) {
+      console.error('Invalid schema to add', this.schema);
+      throw error;
+    }
 
     for (const virtual of this.virtuals) {
       d(
