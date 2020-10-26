@@ -518,7 +518,7 @@ const DEFAULT_FIND_PAGINATION_OPTIONS = {
 };
 
 export interface CommonResponseOptions {
-  level?: string; // the data level for projection
+  level?: number; // the data level for projection
   project?: string[]; // the data fields for projection
 
   // populate specific fields only
