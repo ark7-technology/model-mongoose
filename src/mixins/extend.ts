@@ -109,7 +109,7 @@ CombinedModelField.prototype.dataLevelPopulates = _.memoize(function (
       .getMetadata(type.referenceName)
       .dataLevelPopulates(l, manager);
 
-    if (this.isReference) {
+    if (this.isReference || this.isVirtualReference) {
       res.populates.push({
         path: this.name,
         select: _.chain(next.projections)
@@ -119,12 +119,20 @@ CombinedModelField.prototype.dataLevelPopulates = _.memoize(function (
           .value(),
         populate: next.populates,
       });
-      res.projections.push(this.name);
+
+      if (!this.isVirtualReference) {
+        res.projections.push(this.name);
+      }
     } else {
       _.each(next.projections, (p) =>
         res.projections.push(`${this.name}.${p}`),
       );
     }
+  } else if (this.isVirtualReference) {
+    res.populates.push({
+      path: this.name,
+      populate: [],
+    });
   } else {
     res.projections.push(this.name);
   }

@@ -9,6 +9,7 @@ import {
   Readonly,
   Ref,
   Short,
+  Virtual,
 } from '@ark7/model';
 
 namespace models {
@@ -33,6 +34,32 @@ namespace models {
 
     @Detail()
     m4: Ref<ExtendM1>;
+  }
+
+  @A7Model({})
+  export class ExtendM3 {
+    @Virtual({
+      ref: ExtendM1,
+      localField: '_id',
+      foreignField: 'f2',
+    })
+    v1s: ExtendM1[];
+
+    @Virtual({
+      ref: ExtendM1,
+      localField: '_id',
+      foreignField: 'f2',
+      count: true,
+    })
+    v2s: number;
+
+    @Virtual({
+      ref: ExtendM1,
+      localField: '_id',
+      foreignField: 'f2',
+      justOne: true,
+    })
+    v3s: ExtendM1;
   }
 }
 
@@ -85,6 +112,35 @@ describe('mixin.extend', () => {
           'm3.a1',
           'm4',
         ],
+      });
+    });
+
+    it('should return populates for virtual', () => {
+      const metadata = A7Model.getMetadata(models.ExtendM3);
+      metadata.dataLevelPopulates(DefaultDataLevel.BASIC).should.be.deepEqual({
+        populates: [
+          {
+            path: 'v1s',
+            populate: [],
+            select: {
+              _id: 1,
+              f1: 1,
+            },
+          },
+          {
+            path: 'v2s',
+            populate: [],
+          },
+          {
+            path: 'v3s',
+            populate: [],
+            select: {
+              _id: 1,
+              f1: 1,
+            },
+          },
+        ],
+        projections: ['_id'],
       });
     });
   });
