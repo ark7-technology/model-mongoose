@@ -84,8 +84,10 @@ export class MongooseManager {
     _.each(
       _.extend(
         {
-          versionKey: false,
-          flattenMaps: true,
+          toObject: {
+            versionKey: false,
+            flattenMaps: true,
+          },
         },
         options,
       ),
@@ -131,6 +133,9 @@ export class MongooseManager {
       case 'string':
         return { type: String };
 
+      case 'number':
+        return { type: Number };
+
       case 'ID':
         return { type: mongoose.SchemaTypes.ObjectId };
     }
@@ -168,6 +173,12 @@ export class MongooseManager {
               ref: type.typeArgumentType.referenceName,
             };
           }
+
+        case 'MMap':
+          return {
+            type: Map,
+            of: this.mapPropertyType(type.typeArgumentType).type,
+          };
       }
 
       return mType;
