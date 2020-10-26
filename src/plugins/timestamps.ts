@@ -1,3 +1,5 @@
+import * as mongoose from 'mongoose';
+
 import { MongooseOptions } from '../mongoose-manager';
 import { MongooseOptionsPlugin } from '../plugin';
 
@@ -24,8 +26,12 @@ export function createdAtPlugin(
   }
 
   return (options: MongooseOptions) => {
-    options.mongooseSchema.pre('save', false, setCreatedAtTimeOnSave);
-    options.mongooseSchema.pre(
+    (options.mongooseSchema as mongoose.Schema).pre(
+      'save',
+      false,
+      setCreatedAtTimeOnSave,
+    );
+    (options.mongooseSchema as mongoose.Schema).pre(
       'findOneAndUpdate',
       false,
       setCreatedAtTimeOnUpdate,
@@ -54,8 +60,12 @@ export function lastUpdateTimePlugin(
   }
 
   return (options: MongooseOptions) => {
-    options.mongooseSchema.pre('save', false, setLastUpdateTimeOnSave);
-    options.mongooseSchema.pre(
+    (options.mongooseSchema as mongoose.Schema).pre(
+      'save',
+      false,
+      setLastUpdateTimeOnSave,
+    );
+    (options.mongooseSchema as mongoose.Schema).pre(
       'findOneAndUpdate',
       false,
       setLastUpdateTimeOnUpdate,

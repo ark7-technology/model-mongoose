@@ -92,13 +92,13 @@ export class MongooseManager {
         options,
       ),
       (value, key: keyof mongoose.SchemaOptions) => {
-        mongooseOptions.mongooseSchema.set(key, value);
+        (mongooseOptions.mongooseSchema as mongoose.Schema).set(key, value);
       },
     );
 
     const model = this.mongoose.model(
       mongooseOptions.name,
-      mongooseOptions.mongooseSchema,
+      mongooseOptions.mongooseSchema as mongoose.Schema,
     ) as any;
 
     model.on('index', (err: any) => {
@@ -121,6 +121,7 @@ export class MongooseManager {
 
     const mongooseOptions = new MongooseOptions(
       metadata.name,
+      metadata,
     ).createMongooseSchema();
 
     this.mongooseOptionsMap.set(name, mongooseOptions);
@@ -152,7 +153,10 @@ export class MongooseManager {
             type.referenceName,
           );
 
-          return { type: referenceMongooseOptions.mongooseSchema };
+          return referenceMongooseOptions.mongooseSchema instanceof
+            mongoose.Schema
+            ? { type: referenceMongooseOptions.mongooseSchema }
+            : _.clone(referenceMongooseOptions.mongooseSchema);
       }
     }
 
@@ -203,7 +207,7 @@ export class MongooseOptions {
   schema: {
     [key: string]: any;
   } = {};
-  mongooseSchema?: mongoose.Schema;
+  mongooseSchema?: mongoose.Schema | object;
   pres: Pre[] = [];
   posts: Post[] = [];
   virtuals: Virtual[] = [];
@@ -213,7 +217,7 @@ export class MongooseOptions {
   indexes: MongooseIndex[] = [];
   updateValidators: UpdateValidator[] = [];
 
-  constructor(public name: string) {}
+  constructor(public name: string, public metadata: Ark7ModelMetadata) {}
 
   methodNames(): string[] {
     return _.map(this.methods, (m) => m.name);
@@ -224,7 +228,7 @@ export class MongooseOptions {
   }
 
   clone(): MongooseOptions {
-    const ret = new MongooseOptions(this.name);
+    const ret = new MongooseOptions(this.name, this.metadata);
     ret.config = this.config;
     ret.schema = this.schema;
     ret.mongooseSchema = this.mongooseSchema;
@@ -242,7 +246,14 @@ export class MongooseOptions {
 
   createMongooseSchema(mongooseSchema?: mongoose.Schema): this {
     this.mongooseSchema =
-      this.mongooseSchema ?? mongooseSchema ?? new mongoose.Schema();
+      this.mongooseSchema ??
+      mongooseSchema ??
+      (this.metadata.isEnum
+        ? {
+            type: this.metadata.enumType === 'string' ? String : Number,
+            enum: this.metadata.enumValues,
+          }
+        : new mongoose.Schema());
 
     return this;
   }
@@ -277,6 +288,10 @@ export class MongooseOptions {
   }
 
   protected updateMongooseSchema(): this {
+    if (!(this.mongooseSchema instanceof mongoose.Schema)) {
+      return this;
+    }
+
     try {
       this.mongooseSchema.add(this.schema);
     } catch (error) {
@@ -337,7 +352,7 @@ export class MongooseOptions {
     metadata: Ark7ModelMetadata,
     manager: MongooseManager,
   ): MongooseOptions {
-    const options = new MongooseOptions(metadata.name);
+    const options = new MongooseOptions(metadata.name, metadata);
 
     metadata.combinedFields.forEach((field) => {
       if (['_id', 'toObject', '$attach'].indexOf(field.name) >= 0) {
