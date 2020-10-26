@@ -136,6 +136,9 @@ export class MongooseManager {
       case 'number':
         return { type: Number };
 
+      case 'any':
+        return { type: mongoose.SchemaTypes.Mixed };
+
       case 'ID':
         return { type: mongoose.SchemaTypes.ObjectId };
     }
