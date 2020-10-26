@@ -340,6 +340,11 @@ export class MongooseOptions {
       if (['_id', 'toObject', '$attach'].indexOf(field.name) >= 0) {
         return;
       }
+
+      if (field.field == null && field.prop?.abstract) {
+        return;
+      }
+
       const target: any = _.defaults({}, field.field);
       const prop = field.prop;
       const descriptor = field.descriptor;
