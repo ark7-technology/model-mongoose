@@ -112,19 +112,20 @@ export class MongooseManager {
 
   getMongooseOptions(model: string | ModelClass<any>): MongooseOptions {
     const name = _.isString(model) ? model : model.name;
+    const key = name.toLowerCase();
 
-    if (this.mongooseOptionsMap.has(name)) {
-      return this.mongooseOptionsMap.get(name);
+    if (this.mongooseOptionsMap.has(key)) {
+      return this.mongooseOptionsMap.get(key);
     }
 
     const metadata = A7Model.getMetadata(model);
 
     const mongooseOptions = new MongooseOptions(
-      metadata.name,
+      name,
       metadata,
     ).createMongooseSchema();
 
-    this.mongooseOptionsMap.set(name, mongooseOptions);
+    this.mongooseOptionsMap.set(key, mongooseOptions);
 
     return mongooseOptions.updateMetadata(metadata, this);
   }
