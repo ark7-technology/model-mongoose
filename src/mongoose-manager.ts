@@ -23,6 +23,7 @@ export type ModifiedDocument<T> = Omit<T, '_id'> & {
 };
 
 export class MongooseManager {
+  private mongoose: mongoose.Mongoose;
   private mongooseOptionsMap: Map<string, MongooseOptions> = new Map();
 
   plugins: Map<
@@ -30,8 +31,8 @@ export class MongooseManager {
     MongooseOptionsPluginOptions[]
   > = new Map();
 
-  constructor(private mongoose?: mongoose.Mongoose) {
-    this.mongoose = this.mongoose ?? mongoose;
+  constructor(_mongoose: mongoose.Mongoose = mongoose) {
+    this.mongoose = _mongoose;
   }
 
   plugin(
