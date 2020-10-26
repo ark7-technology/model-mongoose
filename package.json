@@ -5,8 +5,10 @@
   "types": "index.d.ts",
   "main": "index.js",
   "scripts": {
+    "clean": "rm -rf dist",
     "compile:src": "tsc --build src/tsconfig.json",
     "compile:test": "npm run compile:src && tsc --build test/tsconfig.json",
+    "release": "scripts/release",
     "test": "npm run compile:src && NODE_ENV=test node_modules/.bin/mocha --trace-warnings --require ts-node/register --exit \"test/**/*.ts\""
   },
   "repository": {
