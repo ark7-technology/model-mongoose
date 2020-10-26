@@ -1,5 +1,6 @@
 import * as mongoose from 'mongoose';
 import _ from 'underscore';
+import debug from 'debug';
 import {
   A7Model,
   AsObject,
@@ -39,8 +40,7 @@ export interface IOverwrites {
   options?: any;
 }
 
-export const READONLY = 'READONLY';
-export const AUTOGEN = 'AUTOGEN';
+const d = debug('@ark7:model-mongoose:MongooseKoa');
 
 @A7Model({})
 export class MongooseKoa extends MongooseModel {
@@ -57,7 +57,7 @@ export class MongooseKoa extends MongooseModel {
     options = _.defaults({}, options, DEFAULT_COMMON_OPTIONS);
 
     async function create(ctx: IRouterContext, next: INext) {
-      const opts = _.extend({}, options, ctx.overrides?.options);
+      const opts: CreateOptions = _.extend({}, options, ctx.overrides?.options);
       const omits = _.union(['_id'], opts.omits, metadata.autogenFields());
       let doc = _.omit(ctx.request.body, omits);
       doc = _.extend(doc, ctx.overrides && ctx.overrides.doc);
@@ -68,21 +68,28 @@ export class MongooseKoa extends MongooseModel {
         await next();
       }
 
+      const populates = metadata.dataLevelPopulates(
+        opts.level || DefaultDataLevel.DETAIL,
+      );
+
       doc = dotty.get(ctx, opts.target);
       let object: AsObject<MongooseKoa> = (await self.create(doc)) as any;
 
       if (opts.project || opts.level) {
         object = await self.findById(
           object._id,
-          opts.project,
+          _.union(populates.projections, opts.project),
           _.pick(opts, 'level', 'lean'),
         );
       }
 
       dotty.set(ctx, opts.target, object);
 
-      if (opts.populate) {
-        await self.populate(object, opts.populate);
+      if (opts.populate || !_.isEmpty(populates.populates)) {
+        await self.populate(
+          object,
+          _.union(populates.populates, opts.populate),
+        );
       }
 
       if (!opts.noBody) {
@@ -173,15 +180,17 @@ export class MongooseKoa extends MongooseModel {
         opts.level || DefaultDataLevel.DETAIL,
       );
 
+      d('getMiddleware.populates: %o', populates);
+
       let queryPromise = self.findOne(
         query,
         _.union(populates.projections, opts.project),
         queryOption,
       );
 
-      if (opts.populate || !_.isEmpty(populates.populates)) {
+      if (!_.isEmpty(opts.populate) || !_.isEmpty(populates.populates)) {
         queryPromise = queryPromise.populate(
-          populates.populates.concat(opts.populate || []),
+          _.union(populates.populates, opts.populate),
         );
       }
 
@@ -240,7 +249,11 @@ export class MongooseKoa extends MongooseModel {
    *  @param options.project specifies the projection.
    *  @param options.populate specifies the populates.
    */
-  public static findMiddleware(options: FindOptions = {}): IMiddleware {
+  public static findMiddleware(
+    options: FindOptions = {},
+    manager: Manager = _manager,
+  ): IMiddleware {
+    const metadata = this.getMetadata(manager);
     const self = this.cast();
 
     _.defaults(options, DEFAULT_COMMON_OPTIONS);
@@ -265,7 +278,7 @@ export class MongooseKoa extends MongooseModel {
       });
 
     async function find(ctx: IRouterContext, next: INext) {
-      const opts = _.extend(
+      const opts: FindOptions = _.extend(
         {},
         options,
         ctx.overrides && ctx.overrides.options,
@@ -291,15 +304,25 @@ export class MongooseKoa extends MongooseModel {
         queryOption.sort = ctx.overrides.sort;
       }
 
-      let queryPromise = self.find(query, opts.project, queryOption);
+      const populates = metadata.dataLevelPopulates(
+        opts.level || DefaultDataLevel.DETAIL,
+      );
 
-      if (opts.populate) {
-        queryPromise = queryPromise.populate(opts.populate);
+      let queryPromise = self.find(
+        query,
+        _.union(opts.project, populates.projections),
+        queryOption,
+      );
+
+      if (!_.isEmpty(opts.populate) || !_.isEmpty(populates.populates)) {
+        queryPromise = queryPromise.populate(
+          _.union(populates.populates, opts.populate),
+        );
       }
 
       const object = await queryPromise;
 
-      (ctx as any)[opts.target] = object;
+      dotty.set(ctx, opts.target, object);
 
       const bodyTarget: any =
         pagination == null
@@ -312,7 +335,7 @@ export class MongooseKoa extends MongooseModel {
             };
 
       if (pagination && pagination.target) {
-        (ctx as any)[pagination.target] = bodyTarget;
+        dotty.set(ctx, opts.target, bodyTarget);
       }
 
       if (opts.triggerNext) {
@@ -320,7 +343,7 @@ export class MongooseKoa extends MongooseModel {
       }
 
       if (!opts.noBody) {
-        const objects = (ctx as any)[opts.target];
+        const objects = dotty.get(ctx, opts.target);
         for (let i = 0; i < objects.length; i++) {
           objects[i] = await opts.transform(objects[i], ctx);
         }
@@ -380,9 +403,12 @@ export class MongooseKoa extends MongooseModel {
         });
       }
 
+      const populates = metadata.dataLevelPopulates(
+        opts.level || DefaultDataLevel.DETAIL,
+      );
       const queryOption: any = {
         new: true,
-        fields: opts.project,
+        fields: _.union(opts.project, populates.projections),
         level: opts.level,
         runValidators: true,
         context: 'query',
@@ -407,8 +433,10 @@ export class MongooseKoa extends MongooseModel {
       };
       let updatePromise = self.findOneAndUpdate(query, upDoc, queryOption);
 
-      if (opts.populate) {
-        updatePromise = updatePromise.populate(opts.populate);
+      if (!_.isEmpty(opts.populate) || !_.isEmpty(populates.populates)) {
+        updatePromise = updatePromise.populate(
+          _.union(populates.populates, opts.populate),
+        );
       }
       const object = await updatePromise;
 
@@ -416,7 +444,7 @@ export class MongooseKoa extends MongooseModel {
         throw NodesworkError.notFound();
       }
 
-      (ctx as any)[opts.target] = object;
+      dotty.set(ctx, opts.target, object);
 
       if (opts.triggerNext) {
         await next();
@@ -435,7 +463,11 @@ export class MongooseKoa extends MongooseModel {
     return update;
   }
 
-  public static deleteMiddleware(options: DeleteOptions): IMiddleware {
+  public static deleteMiddleware(
+    options: DeleteOptions,
+    manager: Manager = _manager,
+  ): IMiddleware {
+    const metadata = this.getMetadata(manager);
     const self = this.cast();
 
     options = _.defaults({}, options, DEFAULT_DELETE_OPTIONS);
@@ -461,9 +493,7 @@ export class MongooseKoa extends MongooseModel {
 
       let object = await queryPromise;
 
-      (ctx as any)[opts.target] = object;
-
-      object = (ctx as any)[opts.target];
+      dotty.set(ctx, opts.target, object);
 
       if (!opts.nullable && object == null) {
         throw new NodesworkError('not found', {
@@ -599,20 +629,6 @@ export interface UpdateOptions
     SingleItemOptions {}
 
 export interface DeleteOptions extends CommonOptions, SingleItemOptions {}
-
-// KoaMiddlewares.Plugin({
-// fn: apiLevel,
-// });
-
-// function apiLevel(schema: Schema, _options: object) {
-// for (let s = schema; s; s = s.parentSchema) {
-// if (s.api == null) {
-// s.api = {
-// READONLY: [],
-// AUTOGEN: [],
-// };
-// }
-// }
 
 export type INext = () => Promise<any>;
 

@@ -94,7 +94,10 @@ CombinedModelField.prototype.dataLevelPopulates = _.memoize(function (
     populates: [],
     projections: ['_id'],
   };
-  if (this.field?.level != null && this.field.level > level) {
+  if (
+    (this.field?.level != null && this.field.level > level) ||
+    this.isMethod
+  ) {
     return res;
   }
 
