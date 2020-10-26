@@ -68,19 +68,19 @@ describe('koa', () => {
         .should.be.deepEqual({ _id: d._id, foo: 'bar', foo2: 'bar2' });
     });
 
-    // it('should returns basic data', async () => {
-    // const m = KOA.getMiddleware({
-    // field: 'id',
-    // level: DefaultDataLevel.BASIC,
-    // });
-    // const ctx: any = {
-    // request: {},
-    // params: {
-    // id: d._id.toString(),
-    // },
-    // };
-    // await m(ctx, null);
-    // ctx.body.toJSON().should.be.deepEqual({ _id: d._id, foo: 'bar' });
-    // });
+    it('should returns basic data', async () => {
+      const m = KOA.getMiddleware({
+        field: 'id',
+        level: DefaultDataLevel.BASIC,
+      });
+      const ctx: any = {
+        request: {},
+        params: {
+          id: d._id.toString(),
+        },
+      };
+      await m(ctx, null);
+      ctx.body.toJSON().should.be.deepEqual({ _id: d._id, foo: 'bar' });
+    });
   });
 });

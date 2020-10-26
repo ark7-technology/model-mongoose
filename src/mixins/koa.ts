@@ -1,6 +1,12 @@
 import * as mongoose from 'mongoose';
 import _ from 'underscore';
-import { A7Model, AsObject, Manager, manager as _manager } from '@ark7/model';
+import {
+  A7Model,
+  AsObject,
+  DefaultDataLevel,
+  Manager,
+  manager as _manager,
+} from '@ark7/model';
 import { IMiddleware, IRouterContext } from 'koa-router';
 import { NodesworkError } from '@nodeswork/utils';
 import { withInheritedProps as dotty } from 'object-path';
@@ -121,7 +127,11 @@ export class MongooseKoa extends MongooseModel {
    *                            Default: false.
    * @param options.transform a map function before send to ctx.body.
    */
-  public static getMiddleware(options: GetOptions): IMiddleware {
+  public static getMiddleware(
+    options: GetOptions,
+    manager: Manager = _manager,
+  ): IMiddleware {
+    const metadata = this.getMetadata(manager);
     const self = this.cast();
 
     options = _.defaults({}, options, DEFAULT_GET_OPTIONS);
@@ -129,7 +139,7 @@ export class MongooseKoa extends MongooseModel {
     const idFieldName = options.idFieldName;
 
     async function get(ctx: IRouterContext, next: INext) {
-      const opts = _.extend(
+      const opts: GetOptions = _.extend(
         {},
         options,
         ctx.overrides && ctx.overrides.options,
@@ -159,15 +169,25 @@ export class MongooseKoa extends MongooseModel {
 
       const queryOption: any = _.pick(opts, 'level', 'lean');
 
-      let queryPromise = self.findOne(query, opts.project, queryOption);
+      const populates = metadata.dataLevelPopulates(
+        opts.level || DefaultDataLevel.DETAIL,
+      );
 
-      if (opts.populate) {
-        queryPromise = queryPromise.populate(opts.populate);
+      let queryPromise = self.findOne(
+        query,
+        _.union(populates.projections, opts.project),
+        queryOption,
+      );
+
+      if (opts.populate || !_.isEmpty(populates.populates)) {
+        queryPromise = queryPromise.populate(
+          populates.populates.concat(opts.populate || []),
+        );
       }
 
       const object = await queryPromise;
 
-      (ctx as any)[opts.target] = object;
+      dotty.set(ctx, opts.target, object);
 
       if (!opts.nullable && object == null) {
         throw NodesworkError.notFound();
@@ -522,7 +542,7 @@ export interface CommonResponseOptions {
   project?: string[]; // the data fields for projection
 
   // populate specific fields only
-  populate?: mongoose.ModelPopulateOptions | mongoose.ModelPopulateOptions[];
+  populate?: mongoose.ModelPopulateOptions[];
 }
 
 export interface CommonReadOptions {}
