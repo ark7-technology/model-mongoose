@@ -1,13 +1,7 @@
 import * as mongoose from 'mongoose';
 import _ from 'underscore';
 import debug from 'debug';
-import {
-  A7Model,
-  Ark7ModelMetadata,
-  AsObject,
-  ModelClass,
-  runtime,
-} from '@ark7/model';
+import { A7Model, Ark7ModelMetadata, ModelClass, runtime } from '@ark7/model';
 import { MongoError } from 'mongodb';
 
 import { MongooseKoa } from './mixins/koa';
@@ -99,7 +93,7 @@ export class MongooseManager {
       },
     );
 
-    const model = mongoose.model(
+    const model = this.mongoose.model(
       mongooseOptions.name,
       mongooseOptions.mongooseSchema,
     ) as any;
