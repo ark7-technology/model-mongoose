@@ -1,5 +1,11 @@
 import { Field, FieldOptions } from '@ark7/model';
-import { SchemaTypes } from 'mongoose';
+import { SaveOptions, SchemaTypes } from 'mongoose';
+
+declare module '@ark7/model/core/model' {
+  export interface Model {
+    save(options?: SaveOptions): Promise<this>;
+  }
+}
 
 export type MongooseIndexOptions = FieldOptions<{
   index?: boolean;

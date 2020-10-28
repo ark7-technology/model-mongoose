@@ -1,6 +1,6 @@
 import 'should';
 
-import { A7Model } from '@ark7/model';
+import { A7Model, Model as _Model } from '@ark7/model';
 
 import { MongoosePluginPeriod, hasModelName, mongooseManager } from '../src';
 import {
@@ -20,7 +20,7 @@ mongooseManager.plugin(MongoosePluginPeriod.BEFORE_REGISTER, {
 describe('plugin', () => {
   describe('timestamp', () => {
     @A7Model({})
-    class TestTimestampPluginModel {
+    class TestTimestampPluginModel extends _Model {
       val: string;
       createdAt?: Date;
       lastUpdateTime?: Date;
@@ -34,7 +34,7 @@ describe('plugin', () => {
       ins.createdAt.should.be.not.be.null();
       ins.lastUpdateTime.should.be.not.be.null();
 
-      const ins2 = await Model.findById(ins._id);
+      const ins2: Model = await Model.findById(ins._id);
       ins2.val = '2';
       await ins2.save();
 
