@@ -4,6 +4,7 @@ import {
   Ark7ModelMetadata,
   CombinedModelField,
   Manager,
+  Model,
   manager as _manager,
   runtime,
 } from '@ark7/model';
@@ -57,7 +58,7 @@ Ark7ModelMetadata.prototype.dataLevelPopulates = _.memoize(function (
     return { projections: [''], populates: [] };
   }
 
-  return _.chain(Array.from(this.combinedFields.values()))
+  const x = _.chain(Array.from(this.combinedFields.values()))
     .filter((c) => !c.prop?.getter)
     .map((c) => c.dataLevelPopulates(level, manager))
     .foldl(
@@ -68,6 +69,12 @@ Ark7ModelMetadata.prototype.dataLevelPopulates = _.memoize(function (
       { projections: [], populates: [] },
     )
     .value();
+
+  if (this.modelClass.prototype instanceof Model) {
+    x.projections = _.union(['_id'], x.projections);
+  }
+
+  return x;
 },
 dataLevelCashKey);
 
@@ -100,7 +107,7 @@ CombinedModelField.prototype.dataLevelPopulates = _.memoize(function (
 ) {
   const res: DataLevelPopulate = {
     populates: [],
-    projections: ['_id'],
+    projections: [],
   };
   if (
     (this.field?.level != null && this.field.level > level) ||

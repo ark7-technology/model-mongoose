@@ -6,6 +6,7 @@ import {
   Basic,
   DefaultDataLevel,
   Detail,
+  Model,
   Readonly,
   Ref,
   Short,
@@ -37,7 +38,7 @@ namespace models {
   }
 
   @A7Model({})
-  export class ExtendM3 {
+  export class ExtendM3 extends Model {
     @Virtual({
       ref: ExtendM1,
       localField: '_id',
@@ -81,37 +82,19 @@ describe('mixin.extend', () => {
       const metadata = A7Model.getMetadata(models.ExtendM2);
       metadata.dataLevelPopulates(DefaultDataLevel.BASIC).should.be.deepEqual({
         populates: [],
-        projections: ['_id', 'm1._id', 'm1.f1', 'f2'],
+        projections: ['m1.f1', 'f2'],
       });
 
       metadata.dataLevelPopulates(DefaultDataLevel.SHORT).should.be.deepEqual({
         populates: [],
-        projections: [
-          '_id',
-          'm1._id',
-          'm1.f1',
-          'm1.a1',
-          'f2',
-          'm3._id',
-          'm3.f1',
-        ],
+        projections: ['m1.f1', 'm1.a1', 'f2', 'm3.f1'],
       });
 
       metadata.dataLevelPopulates(DefaultDataLevel.DETAIL).should.be.deepEqual({
         populates: [
           { path: 'm4', select: { _id: 1, a1: 1, f1: 1 }, populate: [] },
         ],
-        projections: [
-          '_id',
-          'm1._id',
-          'm1.f1',
-          'm1.a1',
-          'f2',
-          'm3._id',
-          'm3.f1',
-          'm3.a1',
-          'm4',
-        ],
+        projections: ['m1.f1', 'm1.a1', 'f2', 'm3.f1', 'm3.a1', 'm4'],
       });
     });
 
