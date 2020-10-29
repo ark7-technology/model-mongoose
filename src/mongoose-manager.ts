@@ -379,6 +379,13 @@ export class MongooseOptions {
       const prop = field.prop;
       const descriptor = field.descriptor;
 
+      if (
+        field.field == null &&
+        field.prop?.modifier !== runtime.Modifier.PUBLIC
+      ) {
+        return;
+      }
+
       if (field.descriptor == null) {
         if (
           field.prop.modifier === runtime.Modifier.PUBLIC &&
