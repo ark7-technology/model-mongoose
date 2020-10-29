@@ -30,6 +30,7 @@
   "homepage": "https://github.com/ark7-technology/model-mongoose#readme",
   "devDependencies": {
     "@types/mocha": "^8.0.3",
+    "@types/mongoose": "^5.7.36",
     "@types/should": "^13.0.0",
     "gulp": "^4.0.2",
     "gulp-sourcemaps": "^2.6.5",
@@ -47,7 +48,6 @@
     "@types/koa-router": "^7.4.1",
     "@types/moment": "^2.13.0",
     "@types/moment-timezone": "^0.5.30",
-    "@types/mongoose": "^5.7.36",
     "@types/object-path": "^0.11.0",
     "@types/underscore": "^1.10.24",
     "@types/validator": "^13.1.0",
@@ -55,11 +55,13 @@
     "koa-router": "^9.4.0",
     "moment": "^2.29.1",
     "moment-timezone": "^0.5.31",
-    "mongoose": "^5.10.9",
     "object-path": "^0.11.5",
     "reflect-metadata": "^0.1.13",
     "underscore": "^1.11.0",
     "validator": "^13.1.17"
+  },
+  "peerDependencies": {
+    "mongoose": "^5.10.9"
   },
   "importSort": {
     ".js, .jsx, .es6, .es": {
