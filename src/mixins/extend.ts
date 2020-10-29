@@ -55,10 +55,13 @@ Ark7ModelMetadata.prototype.dataLevelPopulates = _.memoize(function (
 ) {
   return _.chain(Array.from(this.combinedFields.values()))
     .map((c) => c.dataLevelPopulates(level, manager))
-    .foldl((prev, curr) => ({
-      projections: _.union(prev.projections, curr.projections),
-      populates: _.union(prev.populates, curr.populates),
-    }))
+    .foldl(
+      (prev, curr) => ({
+        projections: _.union(prev.projections, curr.projections),
+        populates: _.union(prev.populates, curr.populates),
+      }),
+      { projections: [], populates: [] },
+    )
     .value();
 },
 dataLevelCashKey);
