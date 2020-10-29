@@ -58,6 +58,7 @@ Ark7ModelMetadata.prototype.dataLevelPopulates = _.memoize(function (
   }
 
   return _.chain(Array.from(this.combinedFields.values()))
+    .filter((c) => !c.prop?.getter)
     .map((c) => c.dataLevelPopulates(level, manager))
     .foldl(
       (prev, curr) => ({
