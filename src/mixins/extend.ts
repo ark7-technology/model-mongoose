@@ -53,6 +53,10 @@ Ark7ModelMetadata.prototype.dataLevelPopulates = _.memoize(function (
   level: number,
   manager: Manager = _manager,
 ) {
+  if (this.isEnum || this.isCustomizedType) {
+    return { projections: [''], populates: [] };
+  }
+
   return _.chain(Array.from(this.combinedFields.values()))
     .map((c) => c.dataLevelPopulates(level, manager))
     .foldl(
@@ -131,7 +135,7 @@ CombinedModelField.prototype.dataLevelPopulates = _.memoize(function (
       }
     } else {
       _.each(next.projections, (p) =>
-        res.projections.push(`${this.name}.${p}`),
+        res.projections.push(`${this.name}${p === '' ? '' : '.' + p}`),
       );
     }
   } else if (this.isVirtualReference) {

@@ -1,6 +1,6 @@
 import 'should';
 
-import { A7Model } from '@ark7/model';
+import { A7Model, Model } from '@ark7/model';
 
 import { mongooseManager } from '../src';
 
@@ -12,7 +12,7 @@ namespace models {
   A7Model.provide(EnumValue);
 
   @A7Model({})
-  export class EnumModel {
+  export class EnumModel extends Model {
     foo: EnumValue;
   }
 }
@@ -46,5 +46,9 @@ describe('enums', () => {
     await EnumModel.create({ foo: 'HELLO2' } as any).should.rejectedWith(
       'EnumModel validation failed: foo: `HELLO2` is not a valid enum value for path `foo`.',
     );
+
+    const v = await EnumModel.findOne({ foo: models.EnumValue.HELLO });
+
+    v.foo.should.be.equal(models.EnumValue.HELLO);
   });
 });

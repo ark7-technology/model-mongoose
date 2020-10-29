@@ -1,12 +1,12 @@
 import 'should';
 
-import { A7Model, Default } from '@ark7/model';
+import { A7Model, Default, Model } from '@ark7/model';
 
 import { mongooseManager } from '../src';
 
 namespace models {
   @A7Model({})
-  export class BasicDefaultModel {
+  export class BasicDefaultModel extends Model {
     @Default('foo') foo?: string;
   }
 }
