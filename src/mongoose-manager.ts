@@ -88,15 +88,24 @@ export class MongooseManager {
     this.runPlugin(MongoosePluginPeriod.BEFORE_REGISTER, mongooseOptions);
 
     _.each(
-      _.extend(
-        {
-          toObject: {
+      _.extend({}, options, {
+        toJSON: _.extend(
+          {
             versionKey: false,
             flattenMaps: true,
+            virtuals: true,
           },
-        },
-        options,
-      ),
+          options?.toJSON,
+        ),
+        toObject: _.extend(
+          {
+            versionKey: false,
+            flattenMaps: true,
+            virtuals: true,
+          },
+          options?.toObject,
+        ),
+      }),
       (value, key: keyof mongoose.SchemaOptions) => {
         (mongooseOptions.mongooseSchema as mongoose.Schema).set(key, value);
       },
