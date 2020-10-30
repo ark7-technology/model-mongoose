@@ -316,7 +316,12 @@ export class MongooseOptions {
     try {
       this.mongooseSchema.add(this.schema);
     } catch (error) {
-      console.error('Invalid schema to add', this.schema);
+      console.error(
+        'Invalid schema to add to',
+        this.name,
+        ', schema: ',
+        this.schema,
+      );
       throw error;
     }
 
