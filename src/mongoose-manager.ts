@@ -310,8 +310,8 @@ export class MongooseOptions {
 
     if (!(metadata.modelClass.prototype instanceof Model)) {
       this.mongooseSchema.set('_id', false);
-      this.mongooseSchema.set('id', false);
     }
+    this.mongooseSchema.set('id', false);
 
     try {
       this.mongooseSchema.add(this.schema);
