@@ -147,6 +147,9 @@ export class MongooseManager {
 
   mapPropertyType(type: runtime.Type): any {
     switch (type) {
+      case 'boolean':
+        return { type: Boolean };
+
       case 'string':
         return { type: String };
 
