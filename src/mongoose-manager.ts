@@ -31,14 +31,31 @@ export type ModifiedDocument<T> = Omit<T, '_id'> & {
 export class MongooseManager {
   private mongoose: mongoose.Mongoose;
   private mongooseOptionsMap: Map<string, MongooseOptions> = new Map();
+  private options: MongooseManagerOptions = {};
+  private mongooseInstanceMap: Map<string, mongoose.Mongoose> = new Map();
 
   plugins: Map<
     MongoosePluginPeriod,
     MongooseOptionsPluginOptions[]
   > = new Map();
 
-  constructor(_mongoose: mongoose.Mongoose = mongoose) {
-    this.mongoose = _mongoose;
+  constructor(options: mongoose.Mongoose | MongooseManagerOptions = {}) {
+    if (options instanceof mongoose.Mongoose) {
+      this.mongoose = options;
+      this.options = {
+        mongoose: options,
+      };
+    } else {
+      this.mongoose = mongoose;
+      this.options = options as MongooseManagerOptions;
+    }
+  }
+
+  set<T extends keyof MongooseManagerOptions>(
+    key: T,
+    val: MongooseManagerOptions[T],
+  ) {
+    this.options[key] = val;
   }
 
   plugin(
@@ -54,6 +71,34 @@ export class MongooseManager {
       .push(
         _.isFunction(plugin) ? { suitable: TRUE_SUITABLE, fn: plugin } : plugin,
       );
+  }
+
+  private getMongooseInstance(tenancy: string): mongoose.Mongoose {
+    if (this.mongooseInstanceMap.has(tenancy)) {
+      return this.mongooseInstanceMap.get(tenancy);
+    }
+
+    const mi = new mongoose.Mongoose();
+    mi.connect(
+      this.options.multiTenancy.uris,
+      _.extend(
+        {
+          useNewUrlParser: true,
+          useUnifiedTopology: true,
+        },
+        this.options.multiTenancy.options,
+      ),
+      (err) => {
+        if (this.options.multiTenancy.onError) {
+          this.options.multiTenancy.onError(err, tenancy);
+        }
+      },
+    );
+    if (this.options.multiTenancy.onMongooseInstanceCreated) {
+      this.options.multiTenancy.onMongooseInstanceCreated(mi, tenancy);
+    }
+    this.mongooseInstanceMap.set(tenancy, mi);
+    return mi;
   }
 
   protected runPlugin(period: MongoosePluginPeriod, options: MongooseOptions) {
@@ -77,7 +122,7 @@ export class MongooseManager {
 
   register<T, P extends ModelClass<T>>(
     cls: P,
-    options?: mongoose.SchemaOptions,
+    options: mongoose.SchemaOptions = {},
   ): mongoose.Model<mongoose.Document & ModifiedDocument<InstanceType<P>>> &
     P &
     typeof MongooseKoa {
@@ -95,7 +140,7 @@ export class MongooseManager {
             flattenMaps: true,
             virtuals: true,
           },
-          options?.toJSON,
+          options.toJSON,
         ),
         toObject: _.extend(
           {
@@ -103,7 +148,7 @@ export class MongooseManager {
             flattenMaps: true,
             virtuals: true,
           },
-          options?.toObject,
+          options.toObject,
         ),
       }),
       (value, key: keyof mongoose.SchemaOptions) => {
@@ -111,14 +156,104 @@ export class MongooseManager {
       },
     );
 
-    const model = this.mongoose.model(
+    if (!this.options.multiTenancy?.enabled) {
+      return this.registerModel(
+        mongooseOptions,
+        options.collection,
+        this.mongoose,
+      );
+    }
+
+    const tenants = _.union(['default'], this.options.multiTenancy.tenants);
+    const tenantMap: {
+      [key: string]: any;
+    } = {};
+
+    for (const tenancy of tenants) {
+      let mi = this.getMongooseInstance(tenancy);
+
+      tenantMap[tenancy] = this.registerModel(
+        mongooseOptions,
+        options.collection,
+        mi,
+        tenancy,
+      );
+    }
+
+    const proxy: any = new Proxy({} as any, {
+      get: (_obj: {}, prop: string) => {
+        if (prop === '$tenantMap') {
+          return tenantMap;
+        }
+
+        if (lazyFns.indexOf(prop) >= 0) {
+          const ret = function () {
+            const t = this.options.multiTenancy.tenancyFn(prop);
+            const m1: any = tenantMap[t];
+            const actualFn = m1[prop];
+
+            return actualFn.apply(this, arguments);
+          };
+          return ret;
+        }
+
+        if (shareFns.indexOf(prop) >= 0) {
+          const ret = (...args: any[]) => {
+            return _.map(tenants, (t) => {
+              const m2: any = tenantMap[t];
+              return m2[prop].apply(m2, args);
+            });
+          };
+          return ret;
+        }
+
+        const tenancy = this.options.multiTenancy.tenancyFn(prop);
+        const m: any = tenantMap[tenancy];
+        m._proxy = proxy;
+
+        if (prop === '$modelClass') {
+          return m;
+        }
+
+        const res = m[prop];
+        return _.isFunction(res) ? res.bind(m) : res;
+      },
+      set: (_obj: {}, prop: string, value: any) => {
+        const tenancy = this.options.multiTenancy.tenancyFn(prop);
+        const m: any = tenantMap[tenancy];
+        m[prop] = value;
+        return true;
+      },
+    });
+
+    return proxy;
+  }
+
+  private registerModel(
+    mongooseOptions: MongooseOptions,
+    collection: string,
+    mInstance: mongoose.Mongoose,
+    tenancy?: string,
+  ): any {
+    collection =
+      collection ?? mongoose.pluralize()(mongooseOptions.name.toLowerCase());
+
+    if (tenancy === 'default') {
+      tenancy = this.options.multiTenancy.defaultCollectionNamespace || tenancy;
+    }
+
+    const model = mInstance.model(
       mongooseOptions.name,
       mongooseOptions.mongooseSchema as mongoose.Schema,
+      tenancy == null ? collection : `${tenancy}.${collection}`,
     ) as any;
 
     model.on('index', (err: any) => {
       if (err) {
-        throw new Error(`${mongooseOptions.name} index error: ${err}`);
+        throw new Error(
+          `${mongooseOptions.name} index error: ${err}` +
+            (tenancy != null ? `tenancy: ${tenancy}` : ''),
+        );
       }
     });
 
@@ -217,6 +352,25 @@ export class MongooseManager {
 }
 
 export const mongooseManager = new MongooseManager();
+
+export interface MongooseManagerOptionsMultiTenancy {
+  enabled: boolean;
+  defaultCollectionNamespace?: string;
+  tenants: string[];
+  tenancyFn?: (prop: string) => string;
+  uris?: string;
+  options?: mongoose.ConnectionOptions;
+  onError?: (err: any, tenancy: string) => void;
+  onMongooseInstanceCreated?: (
+    mongoose: mongoose.Mongoose,
+    tenancy: string,
+  ) => void;
+}
+
+export interface MongooseManagerOptions {
+  mongoose?: mongoose.Mongoose;
+  multiTenancy?: MongooseManagerOptionsMultiTenancy;
+}
 
 /**
  * Mongoose options for current model.
@@ -548,3 +702,7 @@ export interface VirtualOptions {
 }
 
 export class NativeError extends global.Error {}
+
+const lazyFns: string[] = [];
+
+const shareFns = ['on'];

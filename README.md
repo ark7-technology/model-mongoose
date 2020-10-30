@@ -227,3 +227,20 @@ export namespace db {
   export type User = _User;
 }
 ```
+
+### Multi-tenancy
+
+`@ark7/model` supports to have multi-tenancies living in the same database. For
+example, separating production, staging, and sandbox, environment.
+
+```typescript
+import { mongooseManager } from '@ark7/model-mongoose';
+
+mongooseManager.set('multiTenancy', {
+  enabled: true,
+  tenants: ['test', 'staging', 'sandbox'],
+  tenancyFn: getTenancy,
+  uris: 'mongodb://localhost:27017',
+  defaultCollectionNamespace: 'public',
+});
+```
