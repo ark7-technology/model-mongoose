@@ -10,7 +10,7 @@ import {
 } from '@ark7/model';
 import { MongoError } from 'mongodb';
 
-import { Email, UUID } from './schemas';
+import { Email, SSN, UUID } from './schemas';
 import { MongooseKoa } from './mixins/koa';
 import {
   MongooseOptionsPlugin,
@@ -308,7 +308,10 @@ export class MongooseManager {
           return { type: Email, trim: true };
 
         case 'UUID':
-          return { type: UUID };
+          return { type: UUID, trim: true };
+
+        case 'SSN':
+          return { type: SSN, trim: true };
 
         default:
           const referenceMongooseOptions = this.getMongooseOptions(
