@@ -281,7 +281,7 @@ export class MongooseManager {
     return mongooseOptions.updateMetadata(metadata, this);
   }
 
-  mapPropertyType(type: runtime.Type): any {
+  mapPropertyType(type: runtime.Type): MongooseType {
     switch (type) {
       case 'boolean':
         return { type: Boolean };
@@ -380,6 +380,15 @@ export interface MongooseManagerOptions {
   multiTenancy?: MongooseManagerOptionsMultiTenancy;
 }
 
+export interface MongooseType {
+  type: any;
+  default?: any;
+  trim?: boolean;
+  of?: any;
+  ref?: any;
+  enum?: (number | string)[];
+}
+
 /**
  * Mongoose options for current model.
  */
@@ -388,7 +397,7 @@ export class MongooseOptions {
   schema: {
     [key: string]: any;
   } = {};
-  mongooseSchema?: mongoose.Schema | object;
+  mongooseSchema?: mongoose.Schema | MongooseType;
   pres: Pre[] = [];
   posts: Post[] = [];
   virtuals: Virtual[] = [];
@@ -572,17 +581,20 @@ export class MongooseOptions {
         ) {
           const type = manager.mapPropertyType(field.prop.type);
 
+          if (
+            type.type instanceof mongoose.Schema &&
+            !field.prop.optional &&
+            type.default == null
+          ) {
+            type.default = () => ({});
+          }
+
           _.defaults(
             target,
             options.schema[prop.name],
-            _.isObject(type) && !_.isFunction(type) && type.type != null
-              ? _.extend(type, {
-                  required: !prop.optional,
-                })
-              : {
-                  type,
-                  required: !prop.optional,
-                },
+            _.extend(type, {
+              required: !prop.optional,
+            }),
           );
         }
       } else {
