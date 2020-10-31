@@ -82,6 +82,7 @@ describe('mongoose-manager', () => {
           type: 'ObjectId',
         },
         topic: {
+          default: '',
           required: true,
           type: String,
         },

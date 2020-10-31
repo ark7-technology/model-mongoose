@@ -584,12 +584,26 @@ export class MongooseOptions {
         ) {
           const type = manager.mapPropertyType(field.prop.type);
 
-          if (
-            type.type instanceof mongoose.Schema &&
-            !field.prop.optional &&
-            type.default == null
-          ) {
-            type.default = () => ({});
+          if (!field.prop.optional && type.default == null) {
+            switch (type.type) {
+              case Boolean:
+                type.default = false;
+                break;
+
+              case String:
+                type.default = '';
+                break;
+
+              case Number:
+                type.default = 0;
+                break;
+
+              default:
+                if (type.type instanceof mongoose.Schema) {
+                  type.default = () => ({});
+                }
+                break;
+            }
           }
 
           _.defaults(
