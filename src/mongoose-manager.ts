@@ -10,6 +10,7 @@ import {
 } from '@ark7/model';
 import { MongoError } from 'mongodb';
 
+import { Email, UUID } from './schemas';
 import { MongooseKoa } from './mixins/koa';
 import {
   MongooseOptionsPlugin,
@@ -302,6 +303,13 @@ export class MongooseManager {
       switch (type.referenceName) {
         case 'Date':
           return { type: Date };
+
+        case 'Email':
+          return { type: Email, trim: true };
+
+        case 'UUID':
+          return { type: UUID };
+
         default:
           const referenceMongooseOptions = this.getMongooseOptions(
             type.referenceName,
