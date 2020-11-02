@@ -1,9 +1,92 @@
 import { Field, FieldOptions } from '@ark7/model';
-import { SaveOptions, SchemaTypes } from 'mongoose';
+import { ModelUpdateOptions, SaveOptions, SchemaTypes } from 'mongoose';
 
 declare module '@ark7/model/core/model' {
   export interface Model {
+    /**
+     * Explicitly executes population and returns a promise.
+     * Useful for ES2015 integration.
+     * @returns promise that resolves to the document when population is done
+     */
+    execPopulate(): Promise<this>;
+
+    /** Checks if path was explicitly selected. If no projection, always returns true. */
+    isDirectSelected(path: string): boolean;
+
+    /**
+     * Returns the value of a path.
+     * @param type optionally specify a type for on-the-fly attributes
+     * @param options
+     * @param options.virtuals apply virtuals before getting this path
+     * @param options.getters if false, skip applying getters and just get the raw value
+     */
+    get(
+      path: string,
+      type?: any,
+      options?: {
+        virtuals?: boolean;
+        getters?: boolean;
+      },
+    ): any;
+
+    /** Returns true if path was directly set and modified, else false. */
+    isDirectModified(path: string): boolean;
+
+    /** Checks if path was initialized */
+    isInit(path: string): boolean;
+
+    /**
+     * Returns true if this document was modified, else false.
+     * If path is given, checks if a path or any full path containing path as part of its path
+     * chain has been modified.
+     */
+    isModified(path?: string): boolean;
+
+    /** Checks if path was selected in the source query which initialized this document. */
+    isSelected(path: string): boolean;
+    /**
+     * Marks the path as having pending changes to write to the db.
+     * Very helpful when using Mixed types.
+     * @param path the path to mark modified
+     */
+    markModified(path: string): void;
+
+    /** Returns the list of paths that have been modified. */
+    modifiedPaths(): string[];
+
+    /**
+     * Gets _id(s) used during population of the given path. If the path was not
+     * populated, undefined is returned.
+     */
+    populated(path: string): any;
+
+    /**
+     * Sets the value of a path, or many paths.
+     * @param path path or object of key/vals to set
+     * @param val the value to set
+     * @param type optionally specify a type for "on-the-fly" attributes
+     * @param options optionally specify options that modify the behavior of the set
+     */
+    set(path: string, val: any, options?: any): this;
+    set(path: string, val: any, type: any, options?: any): this;
+    set(value: any): this;
+
     save(options?: SaveOptions): Promise<this>;
+
+    /**
+     * Sends an replaceOne command with this document _id as the query selector.
+     */
+    replaceOne(replacement: any): Promise<this>;
+
+    /**
+     * Sends an update command with this document _id as the query selector.
+     */
+    update(doc: any, options?: ModelUpdateOptions): Promise<this>;
+
+    /**
+     * Sends an updateOne command with this document _id as the query selector.
+     */
+    updateOne(doc: any, options?: ModelUpdateOptions): Promise<this>;
   }
 }
 
