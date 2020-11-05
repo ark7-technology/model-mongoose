@@ -581,10 +581,7 @@ export class MongooseOptions {
       }
 
       if (field.descriptor == null) {
-        if (
-          field.prop.modifier === runtime.Modifier.PUBLIC &&
-          !field.prop.readonly
-        ) {
+        if (field.prop.modifier === runtime.Modifier.PUBLIC) {
           const type = manager.mapPropertyType(field.prop.type);
 
           if (!field.prop.optional && type.default == null) {
