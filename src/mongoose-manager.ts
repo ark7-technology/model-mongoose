@@ -299,6 +299,10 @@ export class MongooseManager {
         return { type: mongoose.SchemaTypes.ObjectId };
     }
 
+    if (type == null) {
+      return { type: mongoose.SchemaTypes.Mixed };
+    }
+
     if (runtime.isReferenceType(type)) {
       switch (type.referenceName) {
         case 'Date':
