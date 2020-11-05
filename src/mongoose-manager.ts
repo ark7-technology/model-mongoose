@@ -4,6 +4,7 @@ import debug from 'debug';
 import {
   A7Model,
   Ark7ModelMetadata,
+  MetadataError,
   Model,
   ModelClass,
   runtime,
@@ -278,7 +279,15 @@ export class MongooseManager {
 
     this.mongooseOptionsMap.set(key, mongooseOptions);
 
-    return mongooseOptions.updateMetadata(metadata, this);
+    try {
+      return mongooseOptions.updateMetadata(metadata, this);
+    } catch (error) {
+      if (error instanceof MetadataError) {
+        throw new MetadataError(`${name}:${error.key}`);
+      } else {
+        throw error;
+      }
+    }
   }
 
   mapPropertyType(type: runtime.Type): MongooseType {
@@ -586,7 +595,17 @@ export class MongooseOptions {
 
       if (field.descriptor == null) {
         if (field.prop.modifier === runtime.Modifier.PUBLIC) {
-          const type = manager.mapPropertyType(field.prop.type);
+          let type;
+
+          try {
+            type = manager.mapPropertyType(field.prop.type);
+          } catch (error) {
+            if (error instanceof MetadataError) {
+              throw new MetadataError(`${field.name}.${error.key}`);
+            } else {
+              throw error;
+            }
+          }
 
           if (!field.prop.optional && type.default == null) {
             switch (type.type) {
