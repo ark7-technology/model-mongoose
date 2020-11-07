@@ -122,6 +122,66 @@ export class MongooseManager {
     }
   }
 
+  register<
+    T,
+    P extends ModelClass<T>,
+    T1,
+    P1 extends ModelClass<T1>,
+    T2,
+    P2 extends ModelClass<T2>,
+    T3,
+    P3 extends ModelClass<T3>,
+    T4,
+    P4 extends ModelClass<T4>,
+    T5,
+    P5 extends ModelClass<T5>,
+    T6,
+    P6 extends ModelClass<T6>,
+    T7,
+    P7 extends ModelClass<T7>,
+    T8,
+    P8 extends ModelClass<T8>,
+    T9,
+    P9 extends ModelClass<T9>
+  >(
+    cls: P,
+    options?: mongoose.SchemaOptions,
+    _m1?: P1,
+    _m2?: P2,
+    _m3?: P3,
+    _m4?: P4,
+    _m5?: P5,
+    _m6?: P6,
+    _m7?: P7,
+    _m8?: P8,
+    _m9?: P9,
+  ): mongoose.Model<
+    mongoose.Document &
+      ModifiedDocument<
+        InstanceType<P> &
+          InstanceType<P1> &
+          InstanceType<P2> &
+          InstanceType<P3> &
+          InstanceType<P4> &
+          InstanceType<P5> &
+          InstanceType<P6> &
+          InstanceType<P7> &
+          InstanceType<P8> &
+          InstanceType<P9>
+      >
+  > &
+    P &
+    P1 &
+    P2 &
+    P3 &
+    P4 &
+    P5 &
+    P6 &
+    P7 &
+    P8 &
+    P9 &
+    typeof MongooseKoa;
+
   register<T, P extends ModelClass<T>>(
     cls: P,
     options: mongoose.SchemaOptions = {},
@@ -376,6 +436,20 @@ export class MongooseManager {
       return mType;
     }
   }
+}
+
+export namespace mongooseManager {
+  export type registerModel<
+    T1,
+    T2 = mongoose.Document,
+    T3 = mongoose.Document,
+    T4 = mongoose.Document,
+    T5 = mongoose.Document,
+    T6 = mongoose.Document,
+    T7 = mongoose.Document,
+    T8 = mongoose.Document,
+    T9 = mongoose.Document
+  > = T1 & T2 & T3 & T4 & T5 & T6 & T7 & T8 & T9 & mongoose.Document;
 }
 
 export const mongooseManager = new MongooseManager();
