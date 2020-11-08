@@ -24,17 +24,29 @@ declare module '@ark7/model/core/model' {
   interface ID extends mongoose.Types.ObjectId {}
 }
 
+declare module 'mongoose' {
+  interface Model<T extends Document, QueryHelpers = {}> {
+    mongooseManager: MongooseManager;
+  }
+}
+
 const d = debug('ark7:model-mongoose:mongoose-manager');
 
 export type ModifiedDocument<T> = Omit<T, '_id'> & {
   _id: mongoose.Types.ObjectId;
 };
 
+export type TenantMap = {
+  [key: string]: any;
+};
+
 export class MongooseManager {
+  options: MongooseManagerOptions = {};
+
   private mongoose: mongoose.Mongoose;
   private mongooseOptionsMap: Map<string, MongooseOptions> = new Map();
-  private options: MongooseManagerOptions = {};
   private mongooseInstanceMap: Map<string, mongoose.Mongoose> = new Map();
+  private modelMap: Map<string, TenantMap> = new Map();
 
   plugins: Map<
     MongoosePluginPeriod,
@@ -51,6 +63,20 @@ export class MongooseManager {
       this.mongoose = mongoose;
       this.options = options as MongooseManagerOptions;
     }
+  }
+
+  getTenantMap(name: string): TenantMap {
+    return this.modelMap.get(name);
+  }
+
+  createTenantMap(name: string): TenantMap {
+    if (this.modelMap.has(name)) {
+      throw new Error(`Tenant ${name} has already created`);
+    }
+
+    const tenantMap: TenantMap = {};
+    this.modelMap.set(name, tenantMap);
+    return tenantMap;
   }
 
   set<T extends keyof MongooseManagerOptions>(
@@ -75,7 +101,7 @@ export class MongooseManager {
       );
   }
 
-  private getMongooseInstance(tenancy: string): mongoose.Mongoose {
+  getMongooseInstance(tenancy: string): mongoose.Mongoose {
     if (this.mongooseInstanceMap.has(tenancy)) {
       return this.mongooseInstanceMap.get(tenancy);
     }
@@ -103,7 +129,7 @@ export class MongooseManager {
     return mi;
   }
 
-  protected runPlugin(period: MongoosePluginPeriod, options: MongooseOptions) {
+  runPlugin(period: MongoosePluginPeriod, options: MongooseOptions) {
     const plugins: MongooseOptionsPluginOptions[] =
       this.plugins.get(period) || [];
 
@@ -188,7 +214,7 @@ export class MongooseManager {
   ): mongoose.Model<mongoose.Document & ModifiedDocument<InstanceType<P>>> &
     P &
     typeof MongooseKoa {
-    const mongooseOptions = this.getMongooseOptions(cls as any);
+    const mongooseOptions = this.getMongooseOptions(cls);
 
     mongooseOptions.updateMetadata(A7Model.getMetadata(MongooseKoa), this);
 
@@ -226,12 +252,9 @@ export class MongooseManager {
       );
     }
 
-    const tenants = _.union(['default'], this.options.multiTenancy.tenants);
-    const tenantMap: {
-      [key: string]: any;
-    } = {};
+    const tenantMap = this.createTenantMap(mongooseOptions.name);
 
-    for (const tenancy of tenants) {
+    for (const tenancy of this.tenants) {
       let mi = this.getMongooseInstance(tenancy);
 
       tenantMap[tenancy] = this.registerModel(
@@ -241,6 +264,16 @@ export class MongooseManager {
         tenancy,
       );
     }
+
+    return this.createProxy(tenantMap);
+  }
+
+  get tenants(): string[] {
+    return _.union(['default'], this.options.multiTenancy.tenants);
+  }
+
+  createProxy(tenantMap: TenantMap): any {
+    const tenants = this.tenants;
 
     const proxy: any = new Proxy({} as any, {
       get: (_obj: {}, prop: string) => {
@@ -318,6 +351,8 @@ export class MongooseManager {
         );
       }
     });
+
+    model.mongooseManager = this;
 
     return model;
   }
@@ -575,6 +610,13 @@ export class MongooseOptions {
       return this;
     }
 
+    if (metadata.configs.discriminatorKey != null) {
+      this.mongooseSchema.set(
+        'discriminatorKey',
+        metadata.configs.discriminatorKey,
+      );
+    }
+
     if (!(metadata.modelClass.prototype instanceof Model)) {
       this.mongooseSchema.set('_id', false);
     }
@@ -653,6 +695,10 @@ export class MongooseOptions {
       }
 
       if (field.field == null && field.prop?.abstract) {
+        return;
+      }
+
+      if (field.name === metadata.configs.discriminatorKey) {
         return;
       }
 
@@ -837,6 +883,6 @@ export interface VirtualOptions {
 
 export class NativeError extends global.Error {}
 
-const lazyFns: string[] = [];
+export const lazyFns: string[] = [];
 
-const shareFns = ['on'];
+export const shareFns = ['on'];
