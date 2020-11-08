@@ -59,7 +59,6 @@ export class DiscriminateMongooseModel extends MongooseModel {
   >(
     cls: P,
     options?: mongoose.SchemaOptions,
-    manager?: Manager,
     _m1?: P1,
     _m2?: P2,
     _m3?: P3,
@@ -99,78 +98,9 @@ export class DiscriminateMongooseModel extends MongooseModel {
   static $discriminator<T, P extends ModelClass<T>>(
     cls: P,
     options: mongoose.SchemaOptions = {},
-    manager: Manager = _manager,
   ): mongoose.Model<mongoose.Document & ModifiedDocument<InstanceType<P>>> &
     P &
     typeof MongooseKoa {
-    const mongooseOptions = this.mongooseManager.getMongooseOptions(cls);
-    mongooseOptions.updateMetadata(
-      manager.getMetadata(MongooseKoa),
-      this.mongooseManager,
-    );
-
-    this.mongooseManager.runPlugin(
-      MongoosePluginPeriod.BEFORE_REGISTER,
-      mongooseOptions,
-    );
-
-    _.each(
-      _.extend({}, options, {
-        toJSON: _.extend(
-          {
-            versionKey: false,
-            flattenMaps: true,
-            virtuals: true,
-          },
-          options.toJSON,
-        ),
-        toObject: _.extend(
-          {
-            versionKey: false,
-            flattenMaps: true,
-            virtuals: true,
-          },
-          options.toObject,
-        ),
-      }),
-      (value, key: keyof mongoose.SchemaOptions) => {
-        (mongooseOptions.mongooseSchema as mongoose.Schema).set(key, value);
-      },
-    );
-
-    const current = this.cast();
-
-    if (!this.mongooseManager.options.multiTenancy?.enabled) {
-      const model = current.discriminator(
-        mongooseOptions.name,
-        mongooseOptions.mongooseSchema as mongoose.Schema,
-      );
-
-      model.mongooseManager = this.mongooseManager;
-
-      return model as any;
-    }
-
-    const parentTenantMap = this.mongooseManager.getTenantMap(
-      (this as any).modelName,
-    );
-
-    const tenantMap = this.mongooseManager.createTenantMap(
-      mongooseOptions.name,
-    );
-
-    for (const tenancy of this.mongooseManager.tenants) {
-      const m = parentTenantMap[tenancy];
-
-      const model = m.discriminator(
-        mongooseOptions.name,
-        mongooseOptions.mongooseSchema as mongoose.Schema,
-      );
-
-      model.mongooseManager = this.mongooseManager;
-      tenantMap[tenancy] = model;
-    }
-
-    return this.mongooseManager.createProxy(tenantMap);
+    return this.mongooseManager.discriminator(this as any, cls, options);
   }
 }
