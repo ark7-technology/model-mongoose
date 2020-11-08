@@ -9,14 +9,8 @@ import {
   manager as _manager,
 } from '@ark7/model';
 
-import {
-  ModifiedDocument,
-  MongooseManager,
-  lazyFns,
-  shareFns,
-} from './mongoose-manager';
+import { ModifiedDocument, MongooseManager } from './mongoose-manager';
 import { MongooseKoa } from './mixins/koa';
-import { MongoosePluginPeriod } from './plugin';
 
 @A7Model({})
 export class MongooseModel extends Model {
