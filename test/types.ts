@@ -19,6 +19,8 @@ namespace models {
 
     static f2() {}
   }
+
+  export interface TestTypesModel2 extends TestTypesModel1 {}
 }
 
 const TestTypesModel2 = mongooseManager.register(
@@ -43,5 +45,8 @@ describe('types', () => {
 
     ins.foo.should.be.equal('foo');
     ins.bar.should.be.equal('bar');
+
+    const b1: models.TestTypesModel2 = null;
+    const _ins2: TestTypesModel2 = b1;
   });
 });

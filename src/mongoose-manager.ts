@@ -603,14 +603,14 @@ export class MongooseManager {
 export namespace mongooseManager {
   export type registerModel<
     T1,
-    T2 = Partial<mongoose.Document>,
-    T3 = Partial<mongoose.Document>,
-    T4 = Partial<mongoose.Document>,
-    T5 = Partial<mongoose.Document>,
-    T6 = Partial<mongoose.Document>,
-    T7 = Partial<mongoose.Document>,
-    T8 = Partial<mongoose.Document>,
-    T9 = Partial<mongoose.Document>
+    T2 = {},
+    T3 = {},
+    T4 = {},
+    T5 = {},
+    T6 = {},
+    T7 = {},
+    T8 = {},
+    T9 = {}
   > = T1 & T2 & T3 & T4 & T5 & T6 & T7 & T8 & T9 & Partial<mongoose.Document>;
 }
 
