@@ -134,7 +134,7 @@ export class MongooseManager {
       this.plugins.get(period) || [];
 
     for (const plugin of plugins) {
-      if (!plugin.suitable(options)) {
+      if (plugin.suitable != null && !plugin.suitable(options)) {
         continue;
       }
 
