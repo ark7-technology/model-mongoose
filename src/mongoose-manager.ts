@@ -31,6 +31,10 @@ declare module 'mongoose' {
 }
 
 const d = debug('ark7:model-mongoose:mongoose-manager');
+const dMethod = debug('ark7:model-mongoose:mongoose-manager:method');
+const dIndex = debug('ark7:model-mongoose:mongoose-manager:index');
+const dSchema = debug('ark7:model-mongoose:mongoose-manager:schema');
+const dVirtual = debug('ark7:model-mongoose:mongoose-manager:virtual');
 
 export type ModifiedDocument<T> = Omit<T, '_id'> & {
   _id: mongoose.Types.ObjectId;
@@ -474,7 +478,7 @@ export class MongooseManager {
       if (err) {
         throw new Error(
           `${mongooseOptions.name} index error: ${err}` +
-            (tenancy != null ? `tenancy: ${tenancy}` : ''),
+            (tenancy != null ? `, tenancy: ${tenancy}` : ''),
         );
       }
     });
@@ -762,7 +766,7 @@ export class MongooseOptions {
     }
 
     for (const virtual of this.virtuals) {
-      d(
+      dVirtual(
         'create virtual for %O with name %O and options %O',
         this.name,
         virtual.name,
@@ -778,7 +782,7 @@ export class MongooseOptions {
     }
 
     for (const method of this.methods) {
-      d(
+      dMethod(
         'create method for %O with name %O and function %O',
         this.name,
         method.name,
@@ -788,7 +792,7 @@ export class MongooseOptions {
     }
 
     for (const method of this.statics) {
-      d(
+      dMethod(
         'create static function for %O with name %O and function %O',
         this.name,
         method.name,
@@ -798,7 +802,7 @@ export class MongooseOptions {
     }
 
     for (const index of this.indexes) {
-      d(
+      dIndex(
         'create index for %O with fields %O and options %O',
         this.name,
         index.fields,
@@ -925,7 +929,7 @@ export class MongooseOptions {
 
     options.indexes = metadata.configs.indexes || [];
 
-    d('create schema for %O with %O', metadata.name, options.schema);
+    dSchema('create schema for %O with %O', metadata.name, options.schema);
 
     return options;
   }
