@@ -2,7 +2,12 @@ import 'should';
 
 import { A7Model, Model as _Model } from '@ark7/model';
 
-import { MongoosePluginPeriod, hasModelName, mongooseManager } from '../src';
+import {
+  MongooseModel,
+  MongoosePluginPeriod,
+  hasModelName,
+  mongooseManager,
+} from '../src';
 import {
   createdAtPlugin,
   lastUpdateTimePlugin,
@@ -20,7 +25,7 @@ mongooseManager.plugin(MongoosePluginPeriod.BEFORE_REGISTER, {
 describe('plugin', () => {
   describe('timestamp', () => {
     @A7Model({})
-    class TestTimestampPluginModel extends _Model {
+    class TestTimestampPluginModel extends MongooseModel {
       val: string;
       createdAt?: Date;
       lastUpdateTime?: Date;

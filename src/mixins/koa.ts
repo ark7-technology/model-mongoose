@@ -54,7 +54,12 @@ export class MongooseKoa extends MongooseModel {
     const metadata = this.getMetadata(manager);
     const self = this.cast();
 
-    options = _.defaults({}, options, DEFAULT_COMMON_OPTIONS);
+    options = _.defaults(
+      {},
+      options,
+      DEFAULT_COMMON_OPTIONS,
+      DEFAULT_CREATE_OPTIONS,
+    );
 
     async function create(ctx: IRouterContext, next: INext) {
       const opts: CreateOptions = _.extend({}, options, ctx.overrides?.options);
@@ -256,7 +261,7 @@ export class MongooseKoa extends MongooseModel {
     const metadata = this.getMetadata(manager);
     const self = this.cast();
 
-    _.defaults(options, DEFAULT_COMMON_OPTIONS);
+    _.defaults(options, DEFAULT_COMMON_OPTIONS, DEFAULT_FIND_OPTIONS);
 
     if (options.pagination) {
       _.defaults(options.pagination, DEFAULT_FIND_PAGINATION_OPTIONS);
@@ -539,25 +544,39 @@ const DEFAULT_COMMON_OPTIONS = {
   transform: _.identity,
 };
 
+const DEFAULT_CREATE_OPTIONS = {
+  level: DefaultDataLevel.DETAIL,
+};
+
 const DEFAULT_SINGLE_ITEM_OPTIONS: Partial<SingleItemOptions> = {
   idFieldName: '_id',
   nullable: false,
 };
 
 const DEFAULT_GET_OPTIONS: Partial<GetOptions> = _.defaults(
-  {},
+  {
+    level: DefaultDataLevel.DETAIL,
+  },
   DEFAULT_COMMON_OPTIONS,
   DEFAULT_SINGLE_ITEM_OPTIONS,
 );
 
+const DEFAULT_FIND_OPTIONS = {
+  level: DefaultDataLevel.SHORT,
+};
+
 const DEFAULT_UPDATE_OPTIONS: Partial<UpdateOptions> = _.defaults(
-  {},
+  {
+    level: DefaultDataLevel.DETAIL,
+  },
   DEFAULT_COMMON_OPTIONS,
   DEFAULT_SINGLE_ITEM_OPTIONS,
 );
 
 const DEFAULT_DELETE_OPTIONS: Partial<DeleteOptions> = _.defaults(
-  {},
+  {
+    level: DefaultDataLevel.DETAIL,
+  },
   DEFAULT_COMMON_OPTIONS,
   DEFAULT_SINGLE_ITEM_OPTIONS,
 );

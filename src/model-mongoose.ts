@@ -1,10 +1,9 @@
-import * as mongoose from 'mongoose';
 import { Field, FieldOptions } from '@ark7/model';
 import { SchemaTypes } from 'mongoose';
 
 declare module '@ark7/model/core/model' {
-  export interface Model
-    extends Omit<mongoose.Document, 'toJSON' | 'toObject' | '_id'> {}
+  // export interface Model
+  // extends Omit<mongoose.Document, 'toJSON' | 'toObject' | '_id'> {}
 }
 
 export type MongooseIndexOptions = FieldOptions<{

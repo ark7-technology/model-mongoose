@@ -3,14 +3,67 @@ import _ from 'underscore';
 import {
   A7Model,
   Ark7ModelMetadata,
+  AsObject,
+  DocumentToObjectOptions,
+  LevelOptions,
   Manager,
   Model,
   ModelClass,
+  StrictModel,
   manager as _manager,
 } from '@ark7/model';
 
 import { ModifiedDocument, MongooseManager } from './mongoose-manager';
 import { MongooseKoa } from './mixins/koa';
+
+declare module 'mongoose' {
+  interface DocumentToObjectOptions {
+    level?: number;
+  }
+
+  interface QueryFindBaseOptions {
+    level?: number;
+  }
+
+  interface QueryPopulateOptions {
+    level?: number;
+  }
+}
+
+StrictModel.prototype.toJSON = function toJSON<T>(
+  this: T,
+  options: DocumentToObjectOptions = {},
+  manager?: Manager,
+): AsObject<T> {
+  manager = manager ?? _manager;
+
+  const ret: any = {};
+  const modelName = (this as any).__proto__.constructor.modelName;
+  const metadata = A7Model.getMetadata(modelName);
+
+  const orig = (this as any).toObject();
+
+  for (const name of metadata.combinedFields.keys()) {
+    const field = metadata.combinedFields.get(name);
+    if (field.isMethod) {
+      continue;
+    }
+
+    if (
+      options.level != null &&
+      (field.field as LevelOptions)?.level > options.level
+    ) {
+      continue;
+    }
+
+    const target = orig[name];
+
+    if (!_.isUndefined(target)) {
+      ret[name] = field.toObject(target, _manager, options);
+    }
+  }
+  return ret;
+};
 
 @A7Model({})
 export class MongooseModel extends Model {
@@ -26,6 +79,9 @@ export class MongooseModel extends Model {
     );
   }
 }
+
+export interface MongooseModel
+  extends Omit<mongoose.Document, 'toJSON' | 'toObject' | '_id'> {}
 
 @A7Model({})
 export class DiscriminateMongooseModel extends MongooseModel {

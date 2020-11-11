@@ -19,6 +19,7 @@ import {
   MongoosePluginPeriod,
   TRUE_SUITABLE,
 } from './plugin';
+import { dataLevelProjection } from './plugins/data-level';
 
 declare module '@ark7/model/core/model' {
   interface ID extends mongoose.Types.ObjectId {}
@@ -67,6 +68,8 @@ export class MongooseManager {
       this.mongoose = mongoose;
       this.options = options as MongooseManagerOptions;
     }
+
+    this.plugin(MongoosePluginPeriod.BEFORE_REGISTER, dataLevelProjection);
   }
 
   getTenantMap(name: string): TenantMap {
