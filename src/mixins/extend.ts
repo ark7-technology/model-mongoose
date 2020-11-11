@@ -111,7 +111,9 @@ CombinedModelField.prototype.dataLevelPopulates = _.memoize(function (
   };
   if (
     (this.field?.level != null && this.field.level > level) ||
-    this.isMethod
+    this.isMethod ||
+    this.prop?.modifier === runtime.Modifier.PRIVATE ||
+    this.prop?.modifier === runtime.Modifier.PROTECTED
   ) {
     return res;
   }

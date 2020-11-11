@@ -20,6 +20,16 @@ namespace models {
     @Autogen()
     @Short()
     a1: string;
+
+    protected _p?: string;
+
+    get p() {
+      return this._p;
+    }
+
+    set p(p: string) {
+      this._p = p;
+    }
   }
 
   @A7Model({})
