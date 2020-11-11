@@ -833,6 +833,10 @@ export class MongooseOptions {
         return;
       }
 
+      if (field.isVirtualReference) {
+        return;
+      }
+
       const target: any = _.defaults({}, field.field);
       const prop = field.prop;
       const descriptor = field.descriptor;
