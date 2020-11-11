@@ -13,7 +13,7 @@ namespace models {
 
   @A7Model({})
   export class EnumModel extends Model {
-    foo: EnumValue;
+    foo?: EnumValue;
   }
 }
 
@@ -29,7 +29,7 @@ describe('enums', () => {
           props: [
             {
               name: 'foo',
-              optional: false,
+              optional: true,
               modifier: 'PUBLIC',
               type: {
                 referenceName: 'EnumValue',
@@ -50,5 +50,10 @@ describe('enums', () => {
     const v = await EnumModel.findOne({ foo: models.EnumValue.HELLO });
 
     v.foo.should.be.equal(models.EnumValue.HELLO);
+  });
+
+  it('works with empty value', async () => {
+    await EnumModel.create({});
+    await EnumModel.create({ foo: null });
   });
 });

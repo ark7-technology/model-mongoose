@@ -884,6 +884,10 @@ export class MongooseOptions {
             }
           }
 
+          if (field.prop.optional && type.enum != null) {
+            type.enum = _.union(type.enum, [null]);
+          }
+
           _.defaults(
             target,
             options.schema[prop.name],
