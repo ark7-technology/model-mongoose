@@ -43,7 +43,7 @@
   },
   "dependencies": {
     "@ark7/model": "^1.0.42",
-    "@nodeswork/utils": "^0.1.13",
+    "@nodeswork/utils": "^0.1.14",
     "@types/debug": "^4.1.5",
     "@types/google-libphonenumber": "^7.4.19",
     "@types/koa-router": "^7.4.1",
