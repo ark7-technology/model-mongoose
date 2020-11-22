@@ -18,6 +18,15 @@ namespace models {
     default1: string;
     @Basic() basic1: string;
     @Detail() detail1: string;
+
+    get g1() {
+      return 'g1';
+    }
+
+    @Basic()
+    get g2() {
+      return 'g2';
+    }
   }
 
   @A7Model({})
@@ -35,6 +44,15 @@ namespace models {
     @Detail() detail3: string;
 
     @Basic() f1: TestDataLevel1;
+
+    get g1() {
+      return 'g1';
+    }
+
+    @Basic()
+    get g2() {
+      return 'g2';
+    }
   }
 
   export interface TestDataLevel3 extends TestDataLevel2 {}
@@ -64,9 +82,10 @@ describe('data-level', () => {
     ).should.be.deepEqual({
       default3: 'default3',
       basic3: 'basic3',
-      f1: { default1: 'default1', basic1: 'basic1' },
+      f1: { default1: 'default1', basic1: 'basic1', g2: 'g2' },
       default2: 'default2',
       basic2: 'basic2',
+      g2: 'g2',
     });
 
     const ins2 = await TestDataLevel3.findById(
@@ -78,9 +97,11 @@ describe('data-level', () => {
     _.omit(ins2.toJSON(), '_id').should.be.deepEqual({
       default3: 'default3',
       basic3: 'basic3',
-      f1: { default1: 'default1', basic1: 'basic1' },
+      f1: { default1: 'default1', basic1: 'basic1', g1: 'g1', g2: 'g2' },
       default2: 'default2',
       basic2: 'basic2',
+      g1: 'g1',
+      g2: 'g2',
     });
   });
 });

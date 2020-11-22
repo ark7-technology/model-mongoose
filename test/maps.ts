@@ -1,5 +1,6 @@
 import 'should';
 
+import * as _ from 'underscore';
 import { A7Model, MMap, Model } from '@ark7/model';
 
 import { mongooseManager } from '../src';
@@ -21,7 +22,7 @@ describe('maps', () => {
       },
     });
 
-    v.toJSON().should.be.have.properties({
+    _.omit(v.toJSON(), '_id').should.be.have.properties({
       s: {
         foo: 1,
       },

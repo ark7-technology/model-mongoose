@@ -4,6 +4,7 @@ import {
   A7Model,
   Ark7ModelMetadata,
   AsObject,
+  CombinedModelField,
   DocumentToObjectOptions,
   LevelOptions,
   Manager,
@@ -11,6 +12,7 @@ import {
   ModelClass,
   StrictModel,
   manager as _manager,
+  runtime,
 } from '@ark7/model';
 
 import { ModifiedDocument, MongooseManager } from './mongoose-manager';
@@ -30,40 +32,114 @@ declare module 'mongoose' {
   }
 }
 
-StrictModel.prototype.toJSON = function toJSON<T>(
-  this: T,
-  options: DocumentToObjectOptions = {},
-  manager?: Manager,
-): AsObject<T> {
-  manager = manager ?? _manager;
+declare module '@ark7/model/core/configs' {
+  interface Ark7ModelMetadata {
+    toJSON: (o: any, options: DocumentToObjectOptions) => any;
+  }
+}
+
+declare module '@ark7/model/core/fields' {
+  interface CombinedModelField {
+    toJSON: (o: any, options: DocumentToObjectOptions) => any;
+  }
+}
+
+Ark7ModelMetadata.prototype.toJSON = function toJSON(
+  this: Ark7ModelMetadata,
+  obj: any,
+  options: DocumentToObjectOptions,
+) {
+  if (obj == null) {
+    return obj;
+  }
 
   const ret: any = {};
-  const c = (this as any).__proto__.constructor;
-  const modelName = c.modelName ?? c.name;
-  const metadata = A7Model.getMetadata(modelName);
-
-  const orig = (this as any).toObject();
-
-  for (const name of metadata.combinedFields.keys()) {
-    const field = metadata.combinedFields.get(name);
+  for (const name of this.combinedFields.keys()) {
+    const field = this.combinedFields.get(name);
     if (field.isMethod) {
       continue;
     }
 
-    if (
-      options.level != null &&
-      (field.field as LevelOptions)?.level > options.level
-    ) {
-      continue;
+    if (options.level != null) {
+      if ((field.field as LevelOptions)?.level > options.level) {
+        continue;
+      }
+
+      if (
+        field.prop?.getter &&
+        ((field.field as LevelOptions)?.level == null ||
+          (field.field as LevelOptions)?.level > options.level)
+      ) {
+        continue;
+      }
     }
 
-    const target = orig[name];
+    const target = obj[name];
 
     if (!_.isUndefined(target)) {
-      ret[name] = field.toObject(target, _manager, options);
+      ret[name] =
+        target instanceof Map
+          ? _.object(Array.from(target.entries()))
+          : field.toJSON(target, options);
     }
   }
   return ret;
+};
+
+CombinedModelField.prototype.toJSON = function toJSON(
+  this: CombinedModelField,
+  o: any,
+  options: DocumentToObjectOptions,
+) {
+  const manager = options.manager ?? _manager;
+  const propType = this.type;
+
+  const newOptions = _.clone(options);
+
+  if (options.level != null) {
+    newOptions.level =
+      (this.field?.passLevelMap && this.field?.passLevelMap[options.level]) ||
+      options.level;
+  }
+
+  const map = (val: any): any => {
+    if (runtime.isReferenceType(propType)) {
+      if (manager.hasMetadata(propType.referenceName)) {
+        const metadata = manager.getMetadata(propType.referenceName);
+
+        if (metadata.isCustomizedType) {
+          return (metadata.modelClass as any).toObject(
+            val,
+            this,
+            options,
+            manager,
+          );
+        }
+
+        if (metadata.isEnum) {
+          return val;
+        }
+
+        return metadata.toJSON(val, newOptions);
+      }
+      const c = val as StrictModel;
+      return c.toJSON ? c.toJSON(newOptions) : c;
+    }
+
+    return val;
+  };
+
+  return this.isArray ? _.map(o, map) : map(o);
+};
+
+StrictModel.prototype.toJSON = function toJSON<T>(
+  this: T,
+  options: DocumentToObjectOptions = {},
+): AsObject<T> {
+  const c = (this as any).__proto__.constructor;
+  const modelName = c.modelName ?? c.name;
+  const metadata = A7Model.getMetadata(modelName);
+  return metadata.toJSON(this, options);
 };
 
 @A7Model({})

@@ -97,7 +97,7 @@ describe('koa', () => {
       };
       await m(ctx, null);
       ctx.body.toJSON().should.be.deepEqual({
-        _id: d._id,
+        _id: d._id.toString(),
         foo: 'bar',
         foo2: 'bar2',
         e2: e.toJSON(),
@@ -118,7 +118,9 @@ describe('koa', () => {
         },
       };
       await m(ctx, null);
-      ctx.body.toJSON().should.be.deepEqual({ _id: d._id, foo: 'bar' });
+      ctx.body
+        .toJSON()
+        .should.be.deepEqual({ _id: d._id.toString(), foo: 'bar' });
     });
   });
 
@@ -146,7 +148,7 @@ describe('koa', () => {
       };
       await m(ctx, null);
       ctx.body.toJSON().should.be.deepEqual({
-        _id: d._id,
+        _id: d._id.toString(),
         foo: 'bar',
         foo2: 'bar2',
         e2: e.toJSON(),
