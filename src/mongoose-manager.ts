@@ -840,6 +840,10 @@ export class MongooseOptions {
         return;
       }
 
+      if (field.field?.noPersist) {
+        return;
+      }
+
       const target: any = _.defaults({}, field.field);
       const prop = field.prop;
       const descriptor = field.descriptor;
