@@ -38,7 +38,8 @@ StrictModel.prototype.toJSON = function toJSON<T>(
   manager = manager ?? _manager;
 
   const ret: any = {};
-  const modelName = (this as any).__proto__.constructor.modelName;
+  const c = (this as any).__proto__.constructor;
+  const modelName = c.modelName ?? c.name;
   const metadata = A7Model.getMetadata(modelName);
 
   const orig = (this as any).toObject();

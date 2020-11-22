@@ -42,7 +42,7 @@
     "typescript": "^4.0.3"
   },
   "dependencies": {
-    "@ark7/model": "^1.0.42",
+    "@ark7/model": "^1.0.52",
     "@nodeswork/utils": "^0.1.14",
     "@types/debug": "^4.1.5",
     "@types/google-libphonenumber": "^7.4.19",
@@ -63,7 +63,7 @@
     "validator": "^13.1.17"
   },
   "peerDependencies": {
-    "mongoose": "^5.10.13"
+    "mongoose": "^5.10.15"
   },
   "importSort": {
     ".js, .jsx, .es6, .es": {
