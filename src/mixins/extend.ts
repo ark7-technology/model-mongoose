@@ -24,6 +24,7 @@ declare module '@ark7/model/core/fields' {
     autogenFields(manager?: Manager): string[];
     readonlyFields(manager?: Manager): string[];
     dataLevelPopulates(level: number, manager?: Manager): DataLevelPopulate;
+    isMongooseField: boolean;
   }
 }
 
@@ -173,6 +174,7 @@ CombinedModelField.prototype.autogenFields = _.memoize(function (
   const type = this.type;
 
   if (
+    this.isMongooseField &&
     runtime.isReferenceType(type) &&
     !this.isReference &&
     type.referenceName !== 'ID'
@@ -201,6 +203,7 @@ CombinedModelField.prototype.readonlyFields = _.memoize(function (
   const type = this.type;
 
   if (
+    this.isMongooseField &&
     runtime.isReferenceType(type) &&
     !this.isReference &&
     type.referenceName !== 'ID'
@@ -226,5 +229,19 @@ Object.defineProperty(CombinedModelField.prototype, 'isReadonly', {
 Object.defineProperty(CombinedModelField.prototype, 'isAutogen', {
   get: function (this: CombinedModelField) {
     return this.field?.autogen || false;
+  },
+});
+
+Object.defineProperty(CombinedModelField.prototype, 'isMongooseField', {
+  get: function (this: CombinedModelField) {
+    return (
+      !this.field?.noPersist &&
+      !this.field?.isVirtualReference &&
+      !(
+        this.prop?.modifier != null &&
+        this.prop.modifier !== runtime.Modifier.PUBLIC
+      ) &&
+      !(this.descriptor?.get || this.descriptor?.set)
+    );
   },
 });

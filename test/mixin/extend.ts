@@ -14,6 +14,8 @@ import {
 } from '@ark7/model';
 
 namespace models {
+  class ExtendM4 {}
+
   @A7Model({})
   export class ExtendM1 {
     readonly f1: string;
@@ -21,13 +23,13 @@ namespace models {
     @Short()
     a1: string;
 
-    protected _p?: string;
+    protected _p?: ExtendM4;
 
     get p() {
       return this._p;
     }
 
-    set p(p: string) {
+    set p(p: ExtendM4) {
       this._p = p;
     }
   }
