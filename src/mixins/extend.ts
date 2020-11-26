@@ -1,5 +1,6 @@
 import * as mongoose from 'mongoose';
 import _ from 'underscore';
+import debug from 'debug';
 import {
   Ark7ModelMetadata,
   CombinedModelField,
@@ -8,6 +9,8 @@ import {
   manager as _manager,
   runtime,
 } from '@ark7/model';
+
+const d = debug('ark7:model-mongoose:mixins:extend');
 
 declare module '@ark7/model/core/configs' {
   export interface Ark7ModelMetadata {
@@ -55,6 +58,7 @@ Ark7ModelMetadata.prototype.dataLevelPopulates = _.memoize(function (
   level: number,
   manager: Manager = _manager,
 ) {
+  d('Get Ark7ModelMetadata(%O).dataLevelPopulates', this.name);
   if (this.isEnum || this.isCustomizedType) {
     return { projections: [''], populates: [] };
   }
@@ -83,6 +87,7 @@ Ark7ModelMetadata.prototype.autogenFields = _.memoize(function (
   this: Ark7ModelMetadata,
   manager: Manager = _manager,
 ) {
+  d('Get Ark7ModelMetadata(%O).autogenFields', this.name);
   return _.chain(Array.from(this.combinedFields.values()))
     .map((c) => c.autogenFields(manager))
     .flatten()
@@ -94,6 +99,7 @@ Ark7ModelMetadata.prototype.readonlyFields = _.memoize(function (
   this: Ark7ModelMetadata,
   manager: Manager = _manager,
 ) {
+  d('Get Ark7ModelMetadata(%O).readonlyFields', this.name);
   return _.chain(Array.from(this.combinedFields.values()))
     .map((c) => c.readonlyFields(manager))
     .flatten()
@@ -106,6 +112,7 @@ CombinedModelField.prototype.dataLevelPopulates = _.memoize(function (
   level: number,
   manager: Manager = _manager,
 ) {
+  d('Get CombinedModelField(%O).dataLevelPopulates', this.name);
   const res: DataLevelPopulate = {
     populates: [],
     projections: [],
@@ -166,6 +173,7 @@ CombinedModelField.prototype.autogenFields = _.memoize(function (
   this: CombinedModelField,
   manager: Manager = _manager,
 ) {
+  d('Get CombinedModelField(%O).autogenFields', this.name);
   const names: string[] = [];
   if (this.isAutogen) {
     names.push(this.name);
@@ -195,6 +203,7 @@ CombinedModelField.prototype.readonlyFields = _.memoize(function (
   this: CombinedModelField,
   manager: Manager = _manager,
 ) {
+  d('Get CombinedModelField(%O).readonlyFields', this.name);
   const names: string[] = [];
   if (this.isReadonly) {
     names.push(this.name);
