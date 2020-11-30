@@ -78,7 +78,7 @@ export class MongooseKoa extends MongooseModel {
       );
 
       doc = dotty.get(ctx, opts.target);
-      let object: AsObject<MongooseKoa> = (await self.create(doc)) as any;
+      let object: any = (await self.create(doc)) as any;
 
       if (opts.project || opts.level) {
         object = await self.findById(
@@ -98,7 +98,10 @@ export class MongooseKoa extends MongooseModel {
       }
 
       if (!opts.noBody) {
-        ctx.body = await opts.transform(object, ctx);
+        ctx.body = await opts.transform(
+          object.toJSON(_.pick(opts, 'level')),
+          ctx,
+        );
       }
     }
 
@@ -212,7 +215,10 @@ export class MongooseKoa extends MongooseModel {
       }
 
       if (!opts.noBody) {
-        ctx.body = await opts.transform((ctx as any)[opts.target], ctx);
+        ctx.body = await opts.transform(
+          object.toJSON(_.pick(opts, 'level')),
+          ctx,
+        );
       }
     }
 
@@ -350,7 +356,10 @@ export class MongooseKoa extends MongooseModel {
       if (!opts.noBody) {
         const objects = dotty.get(ctx, opts.target);
         for (let i = 0; i < objects.length; i++) {
-          objects[i] = await opts.transform(objects[i], ctx);
+          objects[i] = await opts.transform(
+            objects[i].toJSON(_.pick(opts, 'level')),
+            ctx,
+          );
         }
 
         if (pagination && pagination.target) {
@@ -456,7 +465,10 @@ export class MongooseKoa extends MongooseModel {
       }
 
       if (!opts.noBody) {
-        ctx.body = await opts.transform((ctx as any)[opts.target], ctx);
+        ctx.body = await opts.transform(
+          object.toJSON(_.pick(opts, 'level')),
+          ctx,
+        );
       }
     }
 
