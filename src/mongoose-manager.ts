@@ -837,6 +837,19 @@ export class MongooseOptions {
       }
 
       if (field.isVirtualReference) {
+        options.virtuals.push({
+          name: field.name,
+          options: _.pick(
+            field.field,
+            'ref',
+            'localField',
+            'foreignField',
+            'justOne',
+            'options',
+            'count',
+            'match',
+          ),
+        });
         return;
       }
 

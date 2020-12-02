@@ -3,7 +3,6 @@ import _ from 'underscore';
 import debug from 'debug';
 import {
   A7Model,
-  AsObject,
   DefaultDataLevel,
   Manager,
   manager as _manager,
