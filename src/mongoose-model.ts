@@ -30,6 +30,10 @@ declare module 'mongoose' {
   interface QueryPopulateOptions {
     level?: number;
   }
+
+  interface QueryFindOneAndUpdateOptions {
+    level?: number;
+  }
 }
 
 declare module '@ark7/model/core/configs' {
