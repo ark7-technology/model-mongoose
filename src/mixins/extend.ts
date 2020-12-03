@@ -155,6 +155,9 @@ CombinedModelField.prototype.dataLevelPopulates = _.memoize(function (
       _.each(next.projections, (p) =>
         res.projections.push(`${this.name}${p === '' ? '' : '.' + p}`),
       );
+      _.each(next.populates, (p) =>
+        res.populates.push(_.defaults({ path: `${this.name}.${p.path}` }, p)),
+      );
     }
   } else if (this.isVirtualReference) {
     res.populates.push({
