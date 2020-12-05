@@ -89,7 +89,6 @@ describe('virtuals', () => {
     insP.v3.toJSON().should.be.deepEqual({
       _id: ins3._id.toString(),
       mm: ins._id.toString(),
-      v3: 'v3',
     });
   });
 });

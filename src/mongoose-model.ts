@@ -64,18 +64,20 @@ Ark7ModelMetadata.prototype.toJSON = function toJSON(
       continue;
     }
 
-    if (options.level != null) {
-      if ((field.field as LevelOptions)?.level > options.level) {
-        continue;
-      }
+    if (
+      options.level != null &&
+      (field.field as LevelOptions)?.level > options.level
+    ) {
+      continue;
+    }
 
-      if (
-        field.prop?.getter &&
-        ((field.field as LevelOptions)?.level == null ||
-          (field.field as LevelOptions)?.level > options.level)
-      ) {
-        continue;
-      }
+    if (
+      field.prop?.getter &&
+      ((field.field as LevelOptions)?.level == null ||
+        options.level == null ||
+        (field.field as LevelOptions)?.level > options.level)
+    ) {
+      continue;
     }
 
     const target = obj[name];

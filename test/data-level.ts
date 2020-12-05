@@ -97,11 +97,9 @@ describe('data-level', () => {
     _.omit(ins2.toJSON(), '_id').should.be.deepEqual({
       default3: 'default3',
       basic3: 'basic3',
-      f1: { default1: 'default1', basic1: 'basic1', g1: 'g1', g2: 'g2' },
+      f1: { default1: 'default1', basic1: 'basic1' },
       default2: 'default2',
       basic2: 'basic2',
-      g1: 'g1',
-      g2: 'g2',
     });
   });
 });
