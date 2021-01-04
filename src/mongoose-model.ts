@@ -15,11 +15,15 @@ import {
   runtime,
 } from '@ark7/model';
 
-import { ModifiedDocument, MongooseManager } from './mongoose-manager';
+import { ModifiedDocument2, MongooseManager } from './mongoose-manager';
 import { MongooseKoa } from './mixins/koa';
 
 declare module 'mongoose' {
-  interface DocumentToObjectOptions {
+  interface QueryOptions {
+    level?: number;
+  }
+
+  interface ToObjectOptions {
     level?: number;
   }
 
@@ -203,18 +207,7 @@ export class DiscriminateMongooseModel extends MongooseModel {
     _m9?: P9,
   ): mongoose.Model<
     mongoose.Document &
-      ModifiedDocument<
-        InstanceType<P> &
-          InstanceType<P1> &
-          InstanceType<P2> &
-          InstanceType<P3> &
-          InstanceType<P4> &
-          InstanceType<P5> &
-          InstanceType<P6> &
-          InstanceType<P7> &
-          InstanceType<P8> &
-          InstanceType<P9>
-      >
+      ModifiedDocument2<P & P1 & P2 & P3 & P4 & P5 & P6 & P7 & P8 & P9>
   > &
     P &
     P1 &
@@ -231,9 +224,9 @@ export class DiscriminateMongooseModel extends MongooseModel {
   static $discriminator<T, P extends ModelClass<T>>(
     cls: P,
     options: mongoose.SchemaOptions = {},
-  ): mongoose.Model<mongoose.Document & ModifiedDocument<InstanceType<P>>> &
+  ): mongoose.Model<mongoose.Document & ModifiedDocument2<P>> &
     P &
     typeof MongooseKoa {
-    return this.mongooseManager.discriminator(this as any, cls, options);
+    return this.mongooseManager.discriminator(this as any, cls as any, options);
   }
 }

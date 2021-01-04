@@ -14,26 +14,28 @@ export class Email extends BaseSchemaType {
     return /^[a-zA-Z0-9._+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/.test(val);
   }
 
-  cast(val: any) {
-    if (val.constructor !== String) {
-      throw new (mongoose.SchemaType as any).CastError(
-        'Email',
-        val,
-        this.$fullPath,
-        `${val} is not a string`,
-      );
-    }
+  cast(_caster: (v: any) => any) {
+    return (val: any) => {
+      if (val.constructor !== String) {
+        throw new (mongoose.SchemaType as any).CastError(
+          'Email',
+          val,
+          this.$fullPath,
+          `${val} is not a string`,
+        );
+      }
 
-    if (val != null && !this.validateEmail(val as string)) {
-      throw new (mongoose.SchemaType as any).CastError(
-        'Email',
-        val,
-        this.$fullPath,
-        `${val} is not a string`,
-      );
-    }
+      if (val != null && !this.validateEmail(val as string)) {
+        throw new (mongoose.SchemaType as any).CastError(
+          'Email',
+          val,
+          this.$fullPath,
+          `${val} is not a string`,
+        );
+      }
 
-    return val;
+      return val;
+    };
   }
 }
 

@@ -29,29 +29,31 @@ export class PhoneNumber extends BaseSchemaType {
     return valid;
   }
 
-  cast(val: any) {
-    if (val.constructor !== String) {
-      throw new (mongoose.SchemaType as any).CastError(
-        'PhoneNumber',
-        val,
-        this.$fullPath,
-        `${val} is not a string`,
-      );
-    }
+  cast(_caster: (v: any) => any) {
+    return (val: any) => {
+      if (val.constructor !== String) {
+        throw new (mongoose.SchemaType as any).CastError(
+          'PhoneNumber',
+          val,
+          this.$fullPath,
+          `${val} is not a string`,
+        );
+      }
 
-    if (val != null && !this.validatePhoneNumber(val as string)) {
-      throw new (mongoose.SchemaType as any).CastError(
-        'PhoneNumber',
-        val,
-        this.$fullPath,
-        `${val} is not a string`,
-      );
-    }
+      if (val != null && !this.validatePhoneNumber(val as string)) {
+        throw new (mongoose.SchemaType as any).CastError(
+          'PhoneNumber',
+          val,
+          this.$fullPath,
+          `${val} is not a string`,
+        );
+      }
 
-    return phoneUtil.format(
-      phoneUtil.parseAndKeepRawInput(val as string),
-      googleLibPhoneNumber.PhoneNumberFormat.INTERNATIONAL,
-    );
+      return phoneUtil.format(
+        phoneUtil.parseAndKeepRawInput(val as string),
+        googleLibPhoneNumber.PhoneNumberFormat.INTERNATIONAL,
+      );
+    };
   }
 }
 

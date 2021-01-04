@@ -76,6 +76,8 @@ export class MongooseKoa extends MongooseModel {
         opts.level || DefaultDataLevel.DETAIL,
       );
 
+      d('createMiddleware.populates: %o', populates);
+
       doc = dotty.get(ctx, opts.target);
       let object: any = (await self.create(doc)) as any;
 
@@ -318,6 +320,8 @@ export class MongooseKoa extends MongooseModel {
         opts.level || DefaultDataLevel.DETAIL,
       );
 
+      d('findMiddleware.populates: %o', populates);
+
       let queryPromise = self.find(
         query,
         _.union(opts.project, populates.projections),
@@ -419,6 +423,9 @@ export class MongooseKoa extends MongooseModel {
       const populates = metadata.dataLevelPopulates(
         opts.level || DefaultDataLevel.DETAIL,
       );
+
+      d('updateMiddleware.populates: %o', populates);
+
       const queryOption: any = {
         new: true,
         fields: _.union(opts.project, populates.projections),
@@ -602,7 +609,7 @@ export interface CommonResponseOptions {
   project?: string[]; // the data fields for projection
 
   // populate specific fields only
-  populate?: mongoose.ModelPopulateOptions[];
+  populate?: mongoose.PopulateOptions[];
 }
 
 export interface CommonReadOptions {}

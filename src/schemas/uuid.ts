@@ -14,16 +14,18 @@ export class UUID extends BaseSchemaType {
     this.validate(validateUUID, '`{PATH}` is not a valid uuid', 'invalid-uuid');
   }
 
-  cast(val: any) {
-    if (val.constructor !== String) {
-      throw new (mongoose.SchemaType as any).CastError(
-        'UUID',
-        val,
-        this.$fullPath,
-        `${val} is not a valid UUID`,
-      );
-    }
-    return val;
+  cast(_caster: (v: any) => any) {
+    return (val: any) => {
+      if (val.constructor !== String) {
+        throw new (mongoose.SchemaType as any).CastError(
+          'UUID',
+          val,
+          this.$fullPath,
+          `${val} is not a valid UUID`,
+        );
+      }
+      return val;
+    };
   }
 }
 

@@ -1,6 +1,7 @@
 import 'should';
 
 import * as _ from 'underscore';
+import * as mongoose from 'mongoose';
 import {
   A7Model,
   Basic,
@@ -73,7 +74,7 @@ describe('data-level', () => {
         default1: 'default1',
         basic1: 'basic1',
         detail1: 'detail1',
-      },
+      } as any,
     });
 
     _.omit(

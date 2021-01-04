@@ -33,7 +33,7 @@ declare module '@ark7/model/core/fields' {
 
 export interface DataLevelPopulate {
   projections: string[];
-  populates: mongoose.ModelPopulateOptions[];
+  populates: mongoose.PopulateOptions[];
 }
 
 let id: number = 0;

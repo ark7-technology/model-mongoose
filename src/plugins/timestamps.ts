@@ -28,12 +28,10 @@ export function createdAtPlugin(
   return (options: MongooseOptions) => {
     (options.mongooseSchema as mongoose.Schema).pre(
       'save',
-      false,
       setCreatedAtTimeOnSave,
     );
     (options.mongooseSchema as mongoose.Schema).pre(
-      'findOneAndUpdate',
-      false,
+      'updateOne',
       setCreatedAtTimeOnUpdate,
     );
   };
@@ -62,12 +60,10 @@ export function lastUpdateTimePlugin(
   return (options: MongooseOptions) => {
     (options.mongooseSchema as mongoose.Schema).pre(
       'save',
-      false,
       setLastUpdateTimeOnSave,
     );
     (options.mongooseSchema as mongoose.Schema).pre(
-      'findOneAndUpdate',
-      false,
+      'updateOne',
       setLastUpdateTimeOnUpdate,
     );
   };

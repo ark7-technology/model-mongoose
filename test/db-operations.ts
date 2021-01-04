@@ -8,7 +8,7 @@ describe('db', () => {
       name: {
         first: 'fff',
         last: 'wang',
-      },
+      } as any,
       posts: [],
     });
 
@@ -24,7 +24,7 @@ describe('db', () => {
       name: {
         first: 'ffffff',
         last: 'wang',
-      },
+      } as any,
       posts: [],
     }).should.be.rejectedWith(
       'User validation failed: name.first: Path `first` (`ffffff`) is longer than the maximum allowed length (5)., name: Validation failed: first: Path `first` (`ffffff`) is longer than the maximum allowed length (5).',

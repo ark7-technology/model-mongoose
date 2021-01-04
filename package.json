@@ -30,7 +30,6 @@
   "homepage": "https://github.com/ark7-technology/model-mongoose#readme",
   "devDependencies": {
     "@types/mocha": "^8.0.3",
-    "@types/mongoose": "^5.7.36",
     "@types/should": "^13.0.0",
     "gulp": "^4.0.2",
     "gulp-sourcemaps": "^2.6.5",
@@ -39,10 +38,10 @@
     "should": "^13.2.3",
     "ts-node": "^9.0.0",
     "ts-transformer-interface": "^1.6.2",
-    "typescript": "^4.0.3"
+    "typescript": "^4.1.3"
   },
   "dependencies": {
-    "@ark7/model": "^1.0.54",
+    "@ark7/model": "^1.0.62",
     "@nodeswork/utils": "^0.1.14",
     "@types/debug": "^4.1.5",
     "@types/google-libphonenumber": "^7.4.19",

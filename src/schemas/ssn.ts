@@ -17,30 +17,32 @@ export class SSN extends BaseSchemaType {
     return COMPACT_SSN_REGES.test(val) || FULL_SSN_REGEX.test(val);
   }
 
-  cast(val: any) {
-    if (!_.isString(val)) {
-      throw new (mongoose.SchemaType as any).CastError(
-        'SSN',
-        val,
-        this.$fullPath,
-        `${val} is not a valid SSN`,
-      );
-    }
+  cast(_caster: (v: any) => any) {
+    return (val: any) => {
+      if (!_.isString(val)) {
+        throw new (mongoose.SchemaType as any).CastError(
+          'SSN',
+          val,
+          this.$fullPath,
+          `${val} is not a valid SSN`,
+        );
+      }
 
-    if (COMPACT_SSN_REGES.test(val)) {
-      val = `${val.substr(0, 3)}-${val.substr(3, 2)}-${val.substring(5)}`;
-    }
+      if (COMPACT_SSN_REGES.test(val)) {
+        val = `${val.substr(0, 3)}-${val.substr(3, 2)}-${val.substring(5)}`;
+      }
 
-    if (!SSN.test(val)) {
-      throw new (mongoose.SchemaType as any).CastError(
-        'SSN',
-        val,
-        this.$fullPath,
-        `${val} is not a valid SSN`,
-      );
-    }
+      if (!SSN.test(val)) {
+        throw new (mongoose.SchemaType as any).CastError(
+          'SSN',
+          val,
+          this.$fullPath,
+          `${val} is not a valid SSN`,
+        );
+      }
 
-    return val;
+      return val;
+    };
   }
 
   static test(val: string): boolean {

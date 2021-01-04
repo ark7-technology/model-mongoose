@@ -11,6 +11,7 @@ import {
 } from '@ark7/model';
 import { MongoError } from 'mongodb';
 
+import { DeepPartial } from './types';
 import { Email, PhoneNumber, SSN, UUID } from './schemas';
 import { MongooseKoa } from './mixins/koa';
 import {
@@ -26,7 +27,7 @@ declare module '@ark7/model/core/model' {
 }
 
 declare module 'mongoose' {
-  interface Model<T extends Document, QueryHelpers = {}> {
+  interface Model<T extends Document, _QueryHelpers = {}> {
     mongooseManager: MongooseManager;
   }
 }
@@ -37,9 +38,15 @@ const dIndex = debug('ark7:model-mongoose:mongoose-manager:index');
 const dSchema = debug('ark7:model-mongoose:mongoose-manager:schema');
 const dVirtual = debug('ark7:model-mongoose:mongoose-manager:virtual');
 
-export type ModifiedDocument<T> = Omit<T, '_id'> & {
-  _id: mongoose.Types.ObjectId;
+export type ModifiedDocument<T> = Omit<DeepPartial<T>, '_id'> & {
+  _id?: mongoose.Types.ObjectId;
 };
+
+export type ModifiedDocument2<T extends { new (): any }> = ModifiedDocument<
+  InstanceType<T>
+>;
+
+export type ModifiedDocument3<T extends { new (): any }> = ModifiedDocument<T>;
 
 export type TenantMap = {
   [key: string]: any;
@@ -191,18 +198,7 @@ export class MongooseManager {
     _m9?: P9,
   ): mongoose.Model<
     mongoose.Document &
-      ModifiedDocument<
-        InstanceType<P> &
-          InstanceType<P1> &
-          InstanceType<P2> &
-          InstanceType<P3> &
-          InstanceType<P4> &
-          InstanceType<P5> &
-          InstanceType<P6> &
-          InstanceType<P7> &
-          InstanceType<P8> &
-          InstanceType<P9>
-      >
+      ModifiedDocument2<P & P1 & P2 & P3 & P4 & P5 & P6 & P7 & P8 & P9>
   > &
     P &
     P1 &
@@ -220,7 +216,7 @@ export class MongooseManager {
     parentModel: mongoose.Model<mongoose.Document>,
     cls: P,
     options: mongoose.SchemaOptions = {},
-  ): mongoose.Model<mongoose.Document & ModifiedDocument<InstanceType<P>>> &
+  ): mongoose.Model<mongoose.Document & ModifiedDocument2<P>> &
     P &
     typeof MongooseKoa {
     const mongooseOptions = this.getMongooseOptions(cls);
@@ -316,18 +312,9 @@ export class MongooseManager {
     _m8?: P8,
     _m9?: P9,
   ): mongoose.Model<
-    mongoose.Document &
-      ModifiedDocument<
-        InstanceType<P> &
-          InstanceType<P1> &
-          InstanceType<P2> &
-          InstanceType<P3> &
-          InstanceType<P4> &
-          InstanceType<P5> &
-          InstanceType<P6> &
-          InstanceType<P7> &
-          InstanceType<P8> &
-          InstanceType<P9>
+    mongoose.Document<mongoose.Types.ObjectId> &
+      DeepPartial<
+        InstanceType<P> & InstanceType<P1> & InstanceType<P2> & InstanceType<P3>
       >
   > &
     P &
@@ -345,7 +332,9 @@ export class MongooseManager {
   register<T, P extends ModelClass<T>>(
     cls: P,
     options: mongoose.SchemaOptions = {},
-  ): mongoose.Model<mongoose.Document & ModifiedDocument<InstanceType<P>>> &
+  ): mongoose.Model<
+    mongoose.Document<mongoose.Types.ObjectId> & ModifiedDocument2<P>
+  > &
     P &
     typeof MongooseKoa {
     const mongooseOptions = this.getMongooseOptions(cls);
