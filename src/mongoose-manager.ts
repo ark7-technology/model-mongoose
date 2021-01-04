@@ -11,7 +11,7 @@ import {
 } from '@ark7/model';
 import { MongoError } from 'mongodb';
 
-import { Email, PhoneNumber, SSN, UUID } from './schemas';
+import { Duration, Email, PhoneNumber, SSN, UUID } from './schemas';
 import { MongooseKoa } from './mixins/koa';
 import {
   MongooseOptionsPlugin,
@@ -557,6 +557,9 @@ export class MongooseManager {
 
         case 'PhoneNumber':
           return { type: PhoneNumber, trim: true };
+
+        case 'Duration':
+          return { type: Duration };
 
         default:
           const referenceMongooseOptions = this.getMongooseOptions(
