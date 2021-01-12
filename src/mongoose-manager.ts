@@ -12,6 +12,7 @@ import {
 import { MongoError } from 'mongodb';
 
 import { Duration, Email, PhoneNumber, SSN, UUID } from './schemas';
+import { Moment } from './schemas/moment';
 import { MongooseKoa } from './mixins/koa';
 import {
   MongooseOptionsPlugin,
@@ -560,6 +561,9 @@ export class MongooseManager {
 
         case 'Duration':
           return { type: Duration };
+
+        case 'Moment':
+          return { type: Moment };
 
         default:
           const referenceMongooseOptions = this.getMongooseOptions(
