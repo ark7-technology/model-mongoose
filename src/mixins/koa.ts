@@ -318,6 +318,8 @@ export class MongooseKoa extends MongooseModel {
         opts.level || DefaultDataLevel.DETAIL,
       );
 
+      d('findMiddleware.populates: %o', populates);
+
       let queryPromise = self.find(
         query,
         _.union(opts.project, populates.projections),
@@ -419,6 +421,9 @@ export class MongooseKoa extends MongooseModel {
       const populates = metadata.dataLevelPopulates(
         opts.level || DefaultDataLevel.DETAIL,
       );
+
+      d('updateMiddleware.populates: %o', populates);
+
       const queryOption: any = {
         new: true,
         fields: _.union(opts.project, populates.projections),
