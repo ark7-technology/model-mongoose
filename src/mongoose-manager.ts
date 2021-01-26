@@ -8,6 +8,7 @@ import {
   Model,
   ModelClass,
   runtime,
+  setIsIDFn,
 } from '@ark7/model';
 import { MongoError } from 'mongodb';
 
@@ -25,6 +26,11 @@ import { dataLevelProjection } from './plugins/data-level';
 declare module '@ark7/model/core/model' {
   interface ID extends mongoose.Types.ObjectId {}
 }
+
+setIsIDFn(
+  ((x: any) =>
+    !_.isString(x) && !(x instanceof mongoose.Types.ObjectId)) as any,
+);
 
 declare module 'mongoose' {
   interface Model<T extends Document, QueryHelpers = {}> {
