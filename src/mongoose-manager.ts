@@ -949,7 +949,15 @@ export class MongooseOptions {
 
     for (const cls of metadata.classes.reverse()) {
       _.each(Object.getOwnPropertyDescriptors(cls), (desc, key) => {
-        if (['name', 'prototype', 'length', 'modelize'].indexOf(key) >= 0) {
+        if (
+          [
+            'name',
+            'prototype',
+            'length',
+            'modelize',
+            '$modelClassName',
+          ].indexOf(key) >= 0
+        ) {
           return;
         }
 

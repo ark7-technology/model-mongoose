@@ -1,17 +1,19 @@
-import 'should';
-
+import * as should from 'should';
 import {
   A7Model,
   Autogen,
   Basic,
   DefaultDataLevel,
   Detail,
+  Level,
   Model,
   Readonly,
   Ref,
   Short,
   Virtual,
 } from '@ark7/model';
+
+import { CircleDependencyError } from '../../src';
 
 namespace models {
   class ExtendM4 {}
@@ -73,6 +75,20 @@ namespace models {
       justOne: true,
     })
     v3s: ExtendM1;
+  }
+
+  @A7Model({})
+  export class ExtendCircle1 extends Model {
+    @Detail()
+    @Level({ populateLevel: DefaultDataLevel.DETAIL })
+    f1: Ref<ExtendCircle2>;
+  }
+
+  @A7Model({})
+  export class ExtendCircle2 extends Model {
+    @Basic()
+    @Level({ populateLevel: DefaultDataLevel.BASIC })
+    f1: Ref<ExtendCircle1>;
   }
 }
 
@@ -137,6 +153,15 @@ describe('mixin.extend', () => {
         ],
         projections: ['_id'],
       });
+    });
+
+    it('should handle circle populates', () => {
+      const metadata = A7Model.getMetadata(models.ExtendCircle2);
+      const populates = metadata.dataLevelPopulates(DefaultDataLevel.BASIC);
+      populates.populates[0].path.should.be.equal('f1');
+      should(() => {
+        metadata.dataLevelPopulates(DefaultDataLevel.DETAIL);
+      }).throw(CircleDependencyError);
     });
   });
 });
