@@ -173,12 +173,20 @@ CombinedModelField.prototype.dataLevelPopulates = _.memoize(function (
     return res;
   }
 
-  const isPopulate =
-    this.field?.populateLevel != null && this.field.populateLevel <= level;
+  const populateLevel = this.field?.populateLevel ?? this.field?.level;
+  const isPopulate = populateLevel != null && populateLevel <= level;
 
   const type = this.type;
 
-  if (runtime.isReferenceType(type) && type.referenceName !== 'ID') {
+  let isNestedProjected = false;
+  let isNestedPopulated = false;
+  const isForeignField = this.isReference || this.isVirtualReference;
+
+  if (
+    runtime.isReferenceType(type) &&
+    type.referenceName !== 'ID' &&
+    (isPopulate || !isForeignField)
+  ) {
     const l = this.field?.passLevelMap
       ? this.field.passLevelMap[level] || level
       : level;
@@ -191,7 +199,8 @@ CombinedModelField.prototype.dataLevelPopulates = _.memoize(function (
         path == null ? this.name : path + '.' + this.name,
       );
 
-    if (this.isReference || this.isVirtualReference) {
+    if (isForeignField && isPopulate) {
+      isNestedPopulated = true;
       res.populates.push({
         path: this.name,
         select: _.chain(next.projections)
@@ -201,11 +210,10 @@ CombinedModelField.prototype.dataLevelPopulates = _.memoize(function (
           .value(),
         populate: isPopulate ? next.populates : [],
       });
+    }
 
-      if (!this.isVirtualReference) {
-        res.projections.push(this.name);
-      }
-    } else {
+    if (!isForeignField) {
+      isNestedProjected = true;
       _.each(next.projections, (p) =>
         res.projections.push(`${this.name}${p === '' ? '' : '.' + p}`),
       );
@@ -216,13 +224,17 @@ CombinedModelField.prototype.dataLevelPopulates = _.memoize(function (
         );
       }
     }
-  } else if (this.isVirtualReference) {
+  }
+
+  if (!this.isVirtualReference && !isNestedProjected) {
+    res.projections.push(this.name);
+  }
+
+  if (this.isVirtualReference && !isNestedPopulated && isPopulate) {
     res.populates.push({
       path: this.name,
       populate: [],
     });
-  } else {
-    res.projections.push(this.name);
   }
 
   return res;

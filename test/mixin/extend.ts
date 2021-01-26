@@ -53,6 +53,7 @@ namespace models {
 
   @A7Model({})
   export class ExtendM3 extends Model {
+    @Basic()
     @Virtual({
       ref: ExtendM1,
       localField: '_id',
@@ -60,6 +61,7 @@ namespace models {
     })
     v1s: ExtendM1[];
 
+    @Basic()
     @Virtual({
       ref: ExtendM1,
       localField: '_id',
@@ -68,6 +70,7 @@ namespace models {
     })
     v2s: number;
 
+    @Detail()
     @Virtual({
       ref: ExtendM1,
       localField: '_id',
@@ -142,11 +145,31 @@ describe('mixin.extend', () => {
             path: 'v2s',
             populate: [],
           },
+        ],
+        projections: ['_id'],
+      });
+
+      metadata.dataLevelPopulates(DefaultDataLevel.DETAIL).should.be.deepEqual({
+        populates: [
+          {
+            path: 'v1s',
+            populate: [],
+            select: {
+              _id: 1,
+              a1: 1,
+              f1: 1,
+            },
+          },
+          {
+            path: 'v2s',
+            populate: [],
+          },
           {
             path: 'v3s',
             populate: [],
             select: {
               _id: 1,
+              a1: 1,
               f1: 1,
             },
           },
