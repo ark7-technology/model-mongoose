@@ -214,15 +214,15 @@ CombinedModelField.prototype.dataLevelPopulates = _.memoize(function (
 
     if (!isForeignField) {
       isNestedProjected = true;
+      isNestedPopulated = true;
+
       _.each(next.projections, (p) =>
         res.projections.push(`${this.name}${p === '' ? '' : '.' + p}`),
       );
 
-      if (isPopulate) {
-        _.each(next.populates, (p) =>
-          res.populates.push(_.defaults({ path: `${this.name}.${p.path}` }, p)),
-        );
-      }
+      _.each(next.populates, (p) =>
+        res.populates.push(_.defaults({ path: `${this.name}.${p.path}` }, p)),
+      );
     }
   }
 
