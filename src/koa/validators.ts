@@ -670,3 +670,17 @@ export function array(options: ParamsOptions | Validator | Validator[]) {
   };
   return array;
 }
+
+export function toRegEx(flags?: string ) {
+  const toRegEx: Validator = (target, path, val) => {
+    if (val != null) {
+      const value = val instanceof RegExp
+        ? val
+        : new RegExp(val, flags)
+
+      dotty.set(target, path, value);
+    }
+    return true;
+  };
+  return toRegEx;
+}

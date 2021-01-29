@@ -14,7 +14,12 @@ export class UUID extends BaseSchemaType {
     this.validate(validateUUID, '`{PATH}` is not a valid uuid', 'invalid-uuid');
   }
 
-  cast(val: any) {
+  cast(val: any, options :any) {
+    // Allow direct pass of regex in query.
+    if (options instanceof mongoose.Query && val instanceof RegExp) {
+      return val;
+    }
+    
     if (val.constructor !== String) {
       throw new (mongoose.SchemaType as any).CastError(
         'UUID',
