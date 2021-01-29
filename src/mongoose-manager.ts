@@ -962,6 +962,7 @@ export class MongooseOptions {
             'length',
             'modelize',
             '$modelClassName',
+            '$metadata',
           ].indexOf(key) >= 0
         ) {
           return;
