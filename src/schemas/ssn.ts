@@ -17,7 +17,12 @@ export class SSN extends BaseSchemaType {
     return COMPACT_SSN_REGES.test(val) || FULL_SSN_REGEX.test(val);
   }
 
-  cast(val: any) {
+  cast(val: any, options: any) {
+    // Allow direct pass of regex in query.
+    if (options instanceof mongoose.Query && val instanceof RegExp) {
+      return val;
+    }
+
     if (!_.isString(val)) {
       throw new (mongoose.SchemaType as any).CastError(
         'SSN',
