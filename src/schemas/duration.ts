@@ -4,6 +4,18 @@ import { Duration as _Duration, duration, isDuration } from 'moment';
 
 import { BaseSchemaType } from './base-schema-type';
 
+/**
+ * This is a very hacky function. In order to save the ISOString to mongodb, we
+ * patched the function valueOf() to return the ISOString.
+ */
+function patchDuration(duration: any): any {
+  duration.valueOf = function () {
+    return this.toISOString();
+  };
+
+  return duration;
+}
+
 export class Duration extends BaseSchemaType {
   constructor(path: string, options: any) {
     super(path, options, 'Duration');
@@ -19,12 +31,12 @@ export class Duration extends BaseSchemaType {
     // update, updateOne provides options as mongoose.Query.
     if (options instanceof mongoose.Query) {
       if (_.isString(val) || _.isNumber(val)) {
-        return duration(val).asMilliseconds();
+        return duration(val).toISOString();
       }
     }
 
     if (isDuration(val)) {
-      return val;
+      return patchDuration(val);
     }
 
     if (val.constructor !== String) {
@@ -45,7 +57,7 @@ export class Duration extends BaseSchemaType {
       );
     }
 
-    return duration(val as string);
+    return patchDuration(duration(val as string));
   }
 }
 
