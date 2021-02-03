@@ -16,6 +16,10 @@ namespace models {
 const DurationModel = mongooseManager.register(models.DurationModel);
 
 describe('duration', () => {
+  beforeEach(async () => {
+    await DurationModel.remove({});
+  });
+
   it('modelizes duration data', async () => {
     const d = models.DurationModel.modelize({
       d1: 'P2Y',
@@ -29,7 +33,14 @@ describe('duration', () => {
       d1: 'P2Y',
     });
 
-    isDuration(d.d1).should.be.true();
+    d.d1.toString().should.be.equal('P2Y');
+
+    d.d1 = 'P3Y' as any;
+    await d.save();
+
+    await DurationModel.updateOne({ _id: d._id }, {
+      d1: 'P2Y',
+    } as any);
   });
 
   it('convert to JSON', async () => {

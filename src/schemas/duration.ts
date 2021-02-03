@@ -15,7 +15,14 @@ export class Duration extends BaseSchemaType {
     return !!duration(val);
   }
 
-  cast(val: any): any {
+  cast(val: any, options: any): any {
+    // update, updateOne provides options as mongoose.Query.
+    if (options instanceof mongoose.Query) {
+      if (_.isString(val) || _.isNumber(val)) {
+        return duration(val).asMilliseconds();
+      }
+    }
+
     if (isDuration(val)) {
       return val;
     }

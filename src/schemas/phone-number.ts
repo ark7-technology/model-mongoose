@@ -29,12 +29,12 @@ export class PhoneNumber extends BaseSchemaType {
     return valid;
   }
 
-  cast(val: any, options :any) {
+  cast(val: any, options: any) {
     // Allow direct pass of regex in query.
     if (options instanceof mongoose.Query && val instanceof RegExp) {
       return val;
     }
-  
+
     if (val.constructor !== String) {
       throw new (mongoose.SchemaType as any).CastError(
         'PhoneNumber',
