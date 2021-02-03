@@ -6,7 +6,7 @@ npm run clean
 
 npm run compile:src
 
-cp package.json LICENSE README.md dist
+cp package.json LICENSE README.md .npmrc dist
 
 cd dist
 
