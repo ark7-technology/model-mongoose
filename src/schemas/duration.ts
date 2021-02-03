@@ -1,6 +1,6 @@
 import * as mongoose from 'mongoose';
 import _ from 'underscore';
-import { Duration as _Duration, duration } from 'moment';
+import { Duration as _Duration, duration, isDuration } from 'moment';
 
 import { BaseSchemaType } from './base-schema-type';
 
@@ -16,6 +16,10 @@ export class Duration extends BaseSchemaType {
   }
 
   cast(val: any): any {
+    if (isDuration(val)) {
+      return val;
+    }
+
     if (val.constructor !== String) {
       throw new (mongoose.SchemaType as any).CastError(
         'Duration',

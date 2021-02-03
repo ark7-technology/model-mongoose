@@ -16,6 +16,10 @@ export class Moment extends BaseSchemaType {
   }
 
   cast(val: any): any {
+    if (moment.isMoment(val)) {
+      return val;
+    }
+
     if (val.constructor !== String) {
       throw new (mongoose.SchemaType as any).CastError(
         'Moment',
