@@ -57,9 +57,7 @@ describe('indexes', () => {
         field1: 'f1',
         field2: 'foo',
         field3: 'f3_2',
-      }).should.rejectedWith(
-        'E11000 duplicate key error collection: model-mongoose-test.singlefieldindexes index: field2_1 dup key: { field2: "foo" }',
-      );
+      }).should.rejectedWith(/E11000.*/);
     });
 
     it('rejects duplicate values for unique sparse index', async () => {
@@ -73,9 +71,7 @@ describe('indexes', () => {
         field1: 'f1',
         field2: 'f2_2',
         field3: 'foo',
-      }).should.rejectedWith(
-        'E11000 duplicate key error collection: model-mongoose-test.singlefieldindexes index: field3_1 dup key: { field3: "foo" }',
-      );
+      }).should.rejectedWith(/E11000.*/);
 
       await SingleFieldIndex.create({
         field1: 'f1',
@@ -87,9 +83,7 @@ describe('indexes', () => {
         field1: 'f1',
         field2: 'f2_4',
         field3: null,
-      }).should.rejectedWith(
-        'E11000 duplicate key error collection: model-mongoose-test.singlefieldindexes index: field3_1 dup key: { field3: null }',
-      );
+      }).should.rejectedWith(/E11000.*/);
 
       await SingleFieldIndex.create({
         field1: 'f1',
@@ -115,9 +109,7 @@ describe('indexes', () => {
         field1: 'f1',
         field2: 'f2',
         field3: 'f3',
-      }).should.rejectedWith(
-        'E11000 duplicate key error collection: model-mongoose-test.compoundindexmodels index: field1_1_field2_1_field3_1 dup key: { field1: "f1", field2: "f2", field3: "f3" }',
-      );
+      }).should.rejectedWith(/E11000.*/);
     });
   });
 });
