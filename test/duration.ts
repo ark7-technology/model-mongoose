@@ -17,7 +17,7 @@ const DurationModel = mongooseManager.register(models.DurationModel);
 
 describe('duration', () => {
   beforeEach(async () => {
-    await DurationModel.remove({});
+    await DurationModel.deleteMany({});
   });
 
   it('modelizes duration data', async () => {
