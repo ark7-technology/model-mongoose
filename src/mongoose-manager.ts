@@ -602,6 +602,10 @@ export class MongooseManager {
               type: 'ObjectId',
               ref: type.typeArgumentType.referenceName,
             };
+          } else {
+            return {
+              type: mongoose.SchemaTypes.Mixed,
+            };
           }
 
         case 'MMap':
