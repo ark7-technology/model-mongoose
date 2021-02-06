@@ -50,15 +50,7 @@ namespace models {
   @A7Model({})
   @Mixin(MixinM1)
   @Mixin(MixinM2)
-  export class MixinModel extends Model {
-    hello() {
-      return 'world';
-    }
-
-    static bar() {
-      return 'bar';
-    }
-  }
+  export class MixinModel extends Model {}
 
   export interface MixinModel extends MixinM1, MixinM2 {}
 }
