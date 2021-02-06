@@ -10,14 +10,26 @@ namespace models {
     @Default('foo') foo?: string;
 
     hello() {
-      return 'world';
+      return 'world1';
+    }
+
+    static bar() {
+      return 'bar1';
     }
   }
 
   @A7Model({})
   export class MixinM3 extends StrictModel {
+    hello() {
+      return 'world3';
+    }
+
     static hello3() {
       return 'world3';
+    }
+
+    static bar() {
+      return 'bar3';
     }
   }
 
@@ -29,12 +41,24 @@ namespace models {
     static hello2() {
       return 'world2';
     }
+
+    static bar() {
+      return 'bar2';
+    }
   }
 
   @A7Model({})
   @Mixin(MixinM1)
   @Mixin(MixinM2)
-  export class MixinModel extends Model {}
+  export class MixinModel extends Model {
+    hello() {
+      return 'world';
+    }
+
+    static bar() {
+      return 'bar';
+    }
+  }
 
   export interface MixinModel extends MixinM1, MixinM2 {}
 }
@@ -56,7 +80,8 @@ describe('mixin', () => {
         bar: 'bar',
       });
 
-      doc.hello().should.be.equals('world');
+      doc.hello().should.be.equals('world1');
+      MixinModel.bar().should.be.equals('bar1');
       MixinModel.hello2().should.be.equals('world2');
       MixinModel.hello3().should.be.equals('world3');
     });
