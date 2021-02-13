@@ -110,7 +110,10 @@ CombinedModelField.prototype.toJSON = function toJSON(
 
   const map = (val: any): any => {
     if (runtime.isReferenceType(propType)) {
-      if (manager.hasMetadata(propType.referenceName)) {
+      if (
+        propType.referenceName !== 'ID' &&
+        manager.hasMetadata(propType.referenceName)
+      ) {
         const metadata = manager.getMetadata(propType.referenceName);
 
         if (metadata.isCustomizedType) {

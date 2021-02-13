@@ -571,6 +571,9 @@ export class MongooseManager {
         case 'Moment':
           return { type: Moment };
 
+        case 'ID':
+          return { type: mongoose.SchemaTypes.ObjectId };
+
         default:
           const referenceMongooseOptions = this.getMongooseOptions(
             type.referenceName,
@@ -967,6 +970,7 @@ export class MongooseOptions {
             'modelize',
             '$modelClassName',
             '$metadata',
+            '$discriminatorKey',
           ].indexOf(key) >= 0
         ) {
           return;
