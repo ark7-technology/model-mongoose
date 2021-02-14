@@ -33,11 +33,16 @@ export interface IOverwrites {
   pagination?: {
     page: number;
     size: number;
+    agg?: {
+      [key: string]: IOverwritesAggregation;
+    };
   };
   doc?: any;
   sort?: any;
   options?: any;
 }
+
+export type IOverwritesAggregation = ['sum', string /* field name */];
 
 const d = debug('@ark7:model-mongoose:MongooseKoa');
 
@@ -599,7 +604,7 @@ const DEFAULT_DELETE_OPTIONS: Partial<DeleteOptions> = _.defaults(
 
 const DEFAULT_FIND_PAGINATION_OPTIONS = {
   size: 20,
-  sizeChoices: [20, 50, 100, 200],
+  sizeChoices: [20, 50, 100, 200, 2000],
 };
 
 export interface CommonResponseOptions {
@@ -672,6 +677,9 @@ export interface PaginationData<T> {
   page: number;
   total: number;
   data: T[];
+  agg?: {
+    [key: string]: any;
+  };
 }
 
 export function isPaginationData<T>(
