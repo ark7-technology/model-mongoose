@@ -356,7 +356,7 @@ export class MongooseKoa extends MongooseModel {
         queryOption.limit = pagination.size;
       }
 
-      if (ctx.overrides && ctx.overrides.sort) {
+      if (ctx.overrides?.sort) {
         queryOption.sort = ctx.overrides.sort;
       }
 
@@ -398,6 +398,12 @@ export class MongooseKoa extends MongooseModel {
             pagination.agg,
             async ([oper, field]: IOverwritesAggregation, key: string) => {
               const pipes: any[] = [{ $match: query }];
+
+              if (queryOption?.sort) {
+                pipes.push({
+                  $sort: queryOption.sort,
+                });
+              }
 
               if (oper === 'sumCurrent' || oper === 'sumCurrentAndAfter') {
                 pipes.push({
