@@ -397,7 +397,15 @@ export class MongooseKoa extends MongooseModel {
           _.map(
             pagination.agg,
             async ([oper, field]: IOverwritesAggregation, key: string) => {
-              const pipes: any[] = [{ $match: query }];
+              const ss = new (mongoose.Query as any)(
+                query,
+                {},
+                self,
+                self.collection,
+              );
+              ss._castConditions();
+
+              const pipes: any[] = [{ $match: ss._conditions }];
 
               if (queryOption?.sort) {
                 pipes.push({
