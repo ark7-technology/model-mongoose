@@ -42,7 +42,47 @@ export interface IOverwrites {
   options?: any;
 }
 
-export type IOverwritesAggregation = ['sum', string /* field name */];
+export type IOverwritesAggregation = [
+  (
+    | 'sum'
+    | 'sumBefore'
+    | 'sumAfter'
+    | 'sumCurrentAndBefore'
+    | 'sumCurrent'
+    | 'sumCurrentAndAfter'
+  ),
+  string /* field name */,
+];
+
+export namespace aggregator {
+  export function sum(field: string): ['sum', string] {
+    return ['sum', field];
+  }
+
+  export function sumBefore(field: string): ['sumBefore', string] {
+    return ['sumBefore', field];
+  }
+
+  export function sumAfter(field: string): ['sumAfter', string] {
+    return ['sumAfter', field];
+  }
+
+  export function sumCurrentAndBefore(
+    field: string,
+  ): ['sumCurrentAndBefore', string] {
+    return ['sumCurrentAndBefore', field];
+  }
+
+  export function sumCurrentAndAfter(
+    field: string,
+  ): ['sumCurrentAndAfter', string] {
+    return ['sumCurrentAndAfter', field];
+  }
+
+  export function sumCurrent(field: string): ['sumCurrent', string] {
+    return ['sumCurrent', field];
+  }
+}
 
 const d = debug('@ark7:model-mongoose:MongooseKoa');
 
@@ -356,26 +396,54 @@ export class MongooseKoa extends MongooseModel {
         await Promise.all(
           _.map(
             pagination.agg,
-            async (val: IOverwritesAggregation, key: string) => {
-              switch (val[0]) {
-                case 'sum':
-                  const field = val[1];
+            async ([oper, field]: IOverwritesAggregation, key: string) => {
+              const pipes: any[] = [{ $match: query }];
 
-                  const agg: any = await self
-                    .aggregate([
-                      { $match: query },
-                      { $skip: (pagination.page + 1) * pagination.size },
-                      {
-                        $group: {
-                          _id: 'all',
-                          [key ?? field]: { $sum: `$${field}` },
-                        },
-                      },
-                    ])
-                    .exec();
-
-                  dotty.set(bodyTarget, ['agg', key], _.first(agg)?.[key] || 0);
+              if (oper === 'sumCurrent' || oper === 'sumCurrentAndAfter') {
+                pipes.push({
+                  $skip: pagination.page * pagination.size,
+                });
               }
+
+              if (oper === 'sumAfter') {
+                pipes.push({
+                  $skip: (pagination.page + 1) * pagination.size,
+                });
+              }
+
+              if (oper === 'sumCurrent') {
+                pipes.push({
+                  $limit: pagination.size,
+                });
+              }
+
+              if (oper === 'sumBefore') {
+                if (pagination.page === 0) {
+                  dotty.set(bodyTarget, ['agg', key], 0);
+                  return;
+                }
+
+                pipes.push({
+                  $limit: pagination.page * pagination.size,
+                });
+              }
+
+              if (oper === 'sumCurrentAndBefore') {
+                pipes.push({
+                  $limit: (pagination.page + 1) * pagination.size,
+                });
+              }
+
+              pipes.push({
+                $group: {
+                  _id: 'all',
+                  [key ?? field]: { $sum: `$${field}` },
+                },
+              });
+
+              const agg: any = await self.aggregate(pipes).exec();
+
+              dotty.set(bodyTarget, ['agg', key], _.first(agg)?.[key] || 0);
             },
           ),
         );

@@ -14,6 +14,7 @@ import {
   Short,
 } from '@ark7/model';
 
+import { aggregator } from '../../src/mixins/koa';
 import { mongooseManager } from '../../src';
 
 namespace models {
@@ -170,7 +171,12 @@ describe('koa', () => {
       const m = KOA.findMiddleware({
         pagination: {
           agg: {
-            s3: ['sum', 's3'],
+            total: aggregator.sum('s3'),
+            before: aggregator.sumBefore('s3'),
+            after: aggregator.sumAfter('s3'),
+            current: aggregator.sumCurrent('s3'),
+            currentAndBefore: aggregator.sumCurrentAndBefore('s3'),
+            currentAndAfter: aggregator.sumCurrentAndAfter('s3'),
           },
           size: 1,
         },
@@ -186,7 +192,12 @@ describe('koa', () => {
         total: 2,
         data: [d1.toJSON({ level: DefaultDataLevel.SHORT })],
         agg: {
-          s3: 4,
+          total: 10,
+          before: 0,
+          after: 4,
+          current: 6,
+          currentAndBefore: 6,
+          currentAndAfter: 10,
         },
       });
     });
