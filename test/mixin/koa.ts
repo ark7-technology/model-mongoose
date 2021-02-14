@@ -4,6 +4,7 @@ import _ from 'underscore';
 import {
   A7Model,
   Basic,
+  Confidential,
   Default,
   DefaultDataLevel,
   Detail,
@@ -31,6 +32,10 @@ namespace models {
     @Short()
     @Readonly()
     foo2?: string;
+
+    @Default(1)
+    @Confidential()
+    s3?: number;
 
     @Detail() e1?: KOA1;
 
@@ -119,6 +124,71 @@ describe('koa', () => {
       };
       await m(ctx, null);
       ctx.body.should.be.deepEqual({ _id: d._id.toString(), foo: 'bar' });
+    });
+  });
+
+  describe('#findMiddleware', () => {
+    let e: KOA1;
+    let d1: KOA;
+    let d2: KOA;
+
+    beforeEach(async () => {
+      await KOA.deleteMany({});
+      e = await KOA1.create({ foo: 'bar' });
+      d1 = await KOA.create({
+        foo: 'bar',
+        foo2: 'bar2',
+        e1: e,
+        e2: e,
+        e3: [e],
+        s3: 6,
+      });
+      d2 = await KOA.create({
+        foo: 'bar',
+        foo2: 'bar2',
+        e1: e,
+        e2: e,
+        e3: [e],
+        s3: 4,
+      });
+    });
+
+    it('should find data successfully', async () => {
+      const m = KOA.findMiddleware({});
+      const ctx: any = {
+        request: {},
+        params: {},
+      };
+      await m(ctx, null);
+      ctx.body.should.be.deepEqual([
+        d1.toJSON({ level: DefaultDataLevel.SHORT }),
+        d2.toJSON({ level: DefaultDataLevel.SHORT }),
+      ]);
+    });
+
+    it('should find pagination data successfully', async () => {
+      const m = KOA.findMiddleware({
+        pagination: {
+          agg: {
+            s3: ['sum', 's3'],
+          },
+          size: 1,
+        },
+      });
+      const ctx: any = {
+        request: {},
+        params: {},
+      };
+      await m(ctx, null);
+      ctx.body.should.be.deepEqual({
+        pageSize: 1,
+        page: 0,
+        total: 2,
+        data: [d1.toJSON({ level: DefaultDataLevel.SHORT })],
+        agg: {
+          s3: 4,
+        },
+      });
     });
   });
 

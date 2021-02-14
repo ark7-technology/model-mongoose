@@ -280,6 +280,7 @@ export class MongooseKoa extends MongooseModel {
     const defaultPagination = {
       page: 0,
       size: options.pagination ? options.pagination.size : 0,
+      agg: options.pagination?.agg,
     };
 
     const paginationParams =
@@ -300,7 +301,7 @@ export class MongooseKoa extends MongooseModel {
       );
       const query = (ctx.overrides && ctx.overrides.query) || {};
       const queryOption: any = _.pick(opts, 'sort', 'lean', 'level');
-      let pagination = null;
+      let pagination: any = null;
 
       if (opts.pagination) {
         await paginationParams(ctx, () => null);
@@ -308,7 +309,7 @@ export class MongooseKoa extends MongooseModel {
           return;
         }
 
-        pagination = ctx.request.query;
+        pagination = ctx.request.query || {};
         _.defaults(pagination, defaultPagination);
 
         queryOption.skip = pagination.page * pagination.size;
@@ -350,6 +351,35 @@ export class MongooseKoa extends MongooseModel {
               total: await self.find(query).countDocuments(),
               data: object,
             };
+
+      if (pagination?.agg) {
+        await Promise.all(
+          _.map(
+            pagination.agg,
+            async (val: IOverwritesAggregation, key: string) => {
+              switch (val[0]) {
+                case 'sum':
+                  const field = val[1];
+
+                  const agg: any = await self
+                    .aggregate([
+                      { $match: query },
+                      { $skip: (pagination.page + 1) * pagination.size },
+                      {
+                        $group: {
+                          _id: 'all',
+                          [key ?? field]: { $sum: `$${field}` },
+                        },
+                      },
+                    ])
+                    .exec();
+
+                  dotty.set(bodyTarget, ['agg', key], _.first(agg)?.[key] || 0);
+              }
+            },
+          ),
+        );
+      }
 
       if (pagination && pagination.target) {
         dotty.set(ctx, opts.target, bodyTarget);
@@ -657,6 +687,9 @@ export interface FindOptions
     size?: number;
     sizeChoices?: number[];
     target?: string;
+    agg?: {
+      [key: string]: IOverwritesAggregation;
+    };
   };
 
   sort?: object;
