@@ -727,6 +727,8 @@ export class MongooseOptions {
           }
         : new mongoose.Schema());
 
+    (this.mongooseSchema as any).$$modelName = this.name;
+
     return this;
   }
 

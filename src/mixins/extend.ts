@@ -217,11 +217,18 @@ CombinedModelField.prototype.dataLevelPopulates = _.memoize(function (
       isNestedPopulated = true;
 
       _.each(next.projections, (p) =>
-        res.projections.push(`${this.name}${p === '' ? '' : '.' + p}`),
+        res.projections.push(
+          `${this.name}${p === '' ? '' : (this.isMap ? '.$*.' : '.') + p}`,
+        ),
       );
 
       _.each(next.populates, (p) =>
-        res.populates.push(_.defaults({ path: `${this.name}.${p.path}` }, p)),
+        res.populates.push(
+          _.defaults(
+            { path: `${this.name}.${this.isMap ? '$*.' : ''}${p.path}` },
+            p,
+          ),
+        ),
       );
     }
   }

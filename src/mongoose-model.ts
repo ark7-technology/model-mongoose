@@ -146,7 +146,7 @@ StrictModel.prototype.toJSON = function toJSON<T>(
   options: DocumentToObjectOptions = {},
 ): AsObject<T> {
   const c = (this as any).__proto__.constructor;
-  const modelName = c.modelName ?? c.name;
+  const modelName = c.modelName ?? c.schema?.$$modelName ?? c.name;
   const metadata = A7Model.getMetadata(modelName);
   return metadata.toJSON(this, options);
 };
