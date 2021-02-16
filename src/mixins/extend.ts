@@ -216,11 +216,12 @@ CombinedModelField.prototype.dataLevelPopulates = _.memoize(function (
       isNestedProjected = true;
       isNestedPopulated = true;
 
-      _.each(next.projections, (p) =>
-        res.projections.push(
-          `${this.name}${p === '' ? '' : (this.isMap ? '.$*.' : '.') + p}`,
-        ),
-      );
+      // Map can't do projection so far. TODO: figure out better solution.
+      if (!this.isMap) {
+        _.each(next.projections, (p) =>
+          res.projections.push(`${this.name}${p === '' ? '' : '.' + p}`),
+        );
+      }
 
       _.each(next.populates, (p) =>
         res.populates.push(
@@ -233,7 +234,7 @@ CombinedModelField.prototype.dataLevelPopulates = _.memoize(function (
     }
   }
 
-  if (!this.isVirtualReference && !isNestedProjected) {
+  if ((!this.isVirtualReference && !isNestedProjected) || this.isMap) {
     res.projections.push(this.name);
   }
 
