@@ -4,6 +4,7 @@ import debug from 'debug';
 import {
   A7Model,
   DefaultDataLevel,
+  DocumentToObjectOptions,
   Manager,
   manager as _manager,
 } from '@ark7/model';
@@ -475,7 +476,7 @@ export class MongooseKoa extends MongooseModel {
         const objects = dotty.get(ctx, opts.target);
         for (let i = 0; i < objects.length; i++) {
           objects[i] = await opts.transform(
-            objects[i].toJSON(_.pick(opts, 'level')),
+            objects[i].toJSON(_.extend(_.pick(opts, 'level'), opts.toJSON)),
             ctx,
           );
         }
@@ -727,7 +728,9 @@ export interface CommonResponseOptions {
   populate?: mongoose.ModelPopulateOptions[];
 }
 
-export interface CommonReadOptions {}
+export interface CommonReadOptions {
+  toJSON?: DocumentToObjectOptions;
+}
 
 export interface CommonWriteOptions {
   omits?: string[]; // omits fields to be modified
