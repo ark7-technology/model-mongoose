@@ -230,6 +230,15 @@ export class MongooseManager {
   ): mongoose.Model<mongoose.Document & ModifiedDocument<InstanceType<P>>> &
     P &
     typeof MongooseKoa {
+    const parentModelMetadata = this.getMongooseOptions(parentModel.modelName)
+      .metadata;
+
+    if (parentModelMetadata.discriminations == null) {
+      parentModelMetadata.discriminations = [];
+    }
+
+    parentModelMetadata.discriminations.push(cls);
+
     const mongooseOptions = this.getMongooseOptions(cls);
     mongooseOptions.updateMetadata(A7Model.getMetadata(MongooseKoa), this);
 

@@ -13,7 +13,7 @@ import {
   Virtual,
 } from '@ark7/model';
 
-import { CircleDependencyError } from '../../src';
+import { CircleDependencyError, mongooseManager } from '../../src';
 
 namespace models {
   class ExtendM4 {}
@@ -93,7 +93,32 @@ namespace models {
     @Level({ populateLevel: DefaultDataLevel.BASIC })
     f1: Ref<ExtendCircle1>;
   }
+
+  @A7Model({})
+  export class ExtendDiscriminator extends Model {
+    @Basic()
+    f1: string;
+    @Basic()
+    f3: Ref<ExtendCircle1>;
+  }
+
+  @A7Model({})
+  export class ExtendDiscriminator2 extends ExtendDiscriminator {
+    @Basic()
+    f2: string;
+    @Basic()
+    f4: Ref<ExtendCircle2>;
+  }
 }
+
+const ExtendDiscriminator = mongooseManager.register(
+  models.ExtendDiscriminator,
+);
+
+const ExtendDiscriminator2 = mongooseManager.discriminator(
+  ExtendDiscriminator,
+  models.ExtendDiscriminator2,
+);
 
 describe('mixin.extend', () => {
   describe('CombinedModelField', () => {
@@ -175,6 +200,38 @@ describe('mixin.extend', () => {
           },
         ],
         projections: ['_id'],
+      });
+    });
+
+    it('should return populates for discriminator', () => {
+      const metadata = A7Model.getMetadata(models.ExtendDiscriminator);
+      metadata.dataLevelPopulates(DefaultDataLevel.BASIC).should.be.deepEqual({
+        populates: [
+          {
+            path: 'f3',
+            populate: [],
+            select: {
+              _id: 1,
+            },
+          },
+          {
+            path: 'f4',
+            populate: [
+              {
+                path: 'f1',
+                populate: [],
+                select: {
+                  _id: 1,
+                },
+              },
+            ],
+            select: {
+              _id: 1,
+              f1: 1,
+            },
+          },
+        ],
+        projections: ['_id', 'f1', 'f3', 'f2', 'f4'],
       });
     });
 

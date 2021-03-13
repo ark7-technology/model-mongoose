@@ -2,10 +2,12 @@ import * as mongoose from 'mongoose';
 import _ from 'underscore';
 import debug from 'debug';
 import {
+  A7Model,
   Ark7ModelMetadata,
   CombinedModelField,
   Manager,
   Model,
+  ModelClass,
   manager as _manager,
   runtime,
 } from '@ark7/model';
@@ -16,6 +18,8 @@ const d = debug('ark7:model-mongoose:mixins:extend');
 
 declare module '@ark7/model/core/configs' {
   export interface Ark7ModelMetadata {
+    discriminations: ModelClass<any>[];
+
     autogenFields(manager?: Manager): string[];
     readonlyFields(manager?: Manager): string[];
 
@@ -71,6 +75,16 @@ function dataLevelCashKey(level: number) {
   return `${cashKey.call(this)}:${level}`;
 }
 
+export function mergePopulates(
+  p1: DataLevelPopulate,
+  p2: DataLevelPopulate,
+): DataLevelPopulate {
+  return {
+    projections: _.union(p1.projections, p2.projections),
+    populates: _.uniq(_.union(p1.populates, p2.populates), (p) => p.path),
+  };
+}
+
 Ark7ModelMetadata.prototype.dataLevelPopulates = _.memoize(function (
   this: Ark7ModelMetadata,
   level: number,
@@ -88,7 +102,7 @@ Ark7ModelMetadata.prototype.dataLevelPopulates = _.memoize(function (
   }
 
   try {
-    const x = _.chain(Array.from(this.combinedFields.values()))
+    let x = _.chain(Array.from(this.combinedFields.values()))
       .filter((c) => !c.prop?.getter)
       .map((c) =>
         c.dataLevelPopulates(
@@ -110,6 +124,11 @@ Ark7ModelMetadata.prototype.dataLevelPopulates = _.memoize(function (
       x.projections = _.union(['_id'], x.projections);
     }
 
+    _.each(this.discriminations, (discrimination) => {
+      const metadata = A7Model.getMetadata(discrimination.$modelClassName);
+      const populates = metadata.dataLevelPopulates(level, manager, path);
+      x = mergePopulates(x, populates);
+    });
     return x;
   } catch (error) {
     if (error instanceof RangeError) {
