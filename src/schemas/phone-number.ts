@@ -18,15 +18,10 @@ export class PhoneNumber extends BaseSchemaType {
   }
 
   validatePhoneNumber(val: string) {
-    if (val == null) {
-      return true;
-    }
-
-    const valid = phoneUtil.isValidNumberForRegion(
-      phoneUtil.parseAndKeepRawInput(val),
-      'US',
+    return (
+      val == null ||
+      phoneUtil.isValidNumber(phoneUtil.parseAndKeepRawInput(val))
     );
-    return valid;
   }
 
   cast(val: any, options: any) {
