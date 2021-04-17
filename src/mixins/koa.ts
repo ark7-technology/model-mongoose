@@ -17,7 +17,7 @@ import { params, validators } from '../koa';
 
 declare module 'koa-router' {
   interface IRouterContext {
-    overrides?: IOverwrites;
+    overrides?: IOverrides;
   }
 }
 
@@ -27,7 +27,7 @@ declare module 'koa' {
   }
 }
 
-export interface IOverwrites {
+export interface IOverrides {
   query?: {
     [name: string]: any;
   };

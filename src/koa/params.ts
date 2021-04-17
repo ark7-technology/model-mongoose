@@ -1,5 +1,6 @@
 import * as Router from 'koa-router';
 import _ from 'underscore';
+import { Middleware } from '@ark7/router';
 import { NodesworkError } from '@nodeswork/utils';
 import { withInheritedProps as dotty } from 'object-path';
 
@@ -92,3 +93,7 @@ export function processValidators(
 
   return errors;
 }
+
+export const Params = (options: ParamsOptions) => {
+  return Middleware(params(options));
+};
