@@ -1059,11 +1059,6 @@ export interface MongooseIndex {
   };
 }
 
-export interface Validator {
-  validator: (v: any) => any;
-  message: string | ((props: { value: any }) => string);
-}
-
 export interface UpdateValidator {
   path: string;
   fn: (val?: any) => boolean;

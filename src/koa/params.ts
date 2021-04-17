@@ -5,6 +5,7 @@ import { NodesworkError } from '@nodeswork/utils';
 import { withInheritedProps as dotty } from 'object-path';
 
 import * as validators from './validators';
+import { Validator } from './declarations';
 
 export interface ParamError {
   path: string | number;
@@ -18,17 +19,17 @@ export interface ParamsContext {
 }
 
 export interface ParamsOptions {
-  [key: string]: null | validators.Validator | validators.Validator[];
+  [key: string]: null | Validator | Validator[];
 }
 
 export interface StandardParamsOptions {
   key: string;
-  validators: validators.Validator[];
+  validators: Validator[];
 }
 
 export function params(options: ParamsOptions): Router.IMiddleware {
   const mappedOptions: StandardParamsOptions[] = _.map(options, (v, key) => {
-    const vs: validators.Validator[] = _.chain([v])
+    const vs: Validator[] = _.chain([v])
       .flatten()
       .filter((x) => !!x)
       .value();

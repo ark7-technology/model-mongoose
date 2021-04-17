@@ -1,3 +1,4 @@
+export * from './declarations';
 export * from './overrides';
 export * from './params';
 

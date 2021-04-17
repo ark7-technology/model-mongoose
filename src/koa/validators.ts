@@ -5,15 +5,9 @@ import { withInheritedProps as dotty } from 'object-path';
 import { unitOfTime } from 'moment';
 
 import { ParamError, ParamsOptions, processValidators } from './params';
+import { Validator } from './declarations';
 
 /* tslint:disable:rule1 no-shadowed-variable */
-
-export type Validator = (
-  target: any,
-  path: string | number,
-  val: any,
-  root: any,
-) => boolean | string | ParamError | ParamError[];
 
 // --------------------------- Validators ----------------------------------- //
 // TODO: remove after https://github.com/Microsoft/TypeScript/issues/14127 fixed
@@ -671,12 +665,10 @@ export function array(options: ParamsOptions | Validator | Validator[]) {
   return array;
 }
 
-export function toRegEx(flags?: string ) {
+export function toRegEx(flags?: string) {
   const toRegEx: Validator = (target, path, val) => {
     if (val != null) {
-      const value = val instanceof RegExp
-        ? val
-        : new RegExp(val, flags)
+      const value = val instanceof RegExp ? val : new RegExp(val, flags);
 
       dotty.set(target, path, value);
     }
