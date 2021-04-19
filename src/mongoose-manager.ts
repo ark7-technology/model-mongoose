@@ -230,15 +230,6 @@ export class MongooseManager {
   ): mongoose.Model<mongoose.Document & ModifiedDocument<InstanceType<P>>> &
     P &
     typeof MongooseKoa {
-    const parentModelMetadata = this.getMongooseOptions(parentModel.modelName)
-      .metadata;
-
-    if (parentModelMetadata.discriminations == null) {
-      parentModelMetadata.discriminations = [];
-    }
-
-    parentModelMetadata.discriminations.push(cls);
-
     const mongooseOptions = this.getMongooseOptions(cls);
     mongooseOptions.updateMetadata(A7Model.getMetadata(MongooseKoa), this);
 
@@ -749,7 +740,7 @@ export class MongooseOptions {
 
     this.updateMongooseOptions(currentOptions);
 
-    return this.updateMongooseSchema(metadata);
+    return this.updateMongooseSchema(metadata, manager);
   }
 
   protected updateMongooseOptions(options: MongooseOptions): this {
@@ -770,7 +761,10 @@ export class MongooseOptions {
     return this;
   }
 
-  protected updateMongooseSchema(metadata: Ark7ModelMetadata): this {
+  protected updateMongooseSchema(
+    metadata: Ark7ModelMetadata,
+    manager: MongooseManager,
+  ): this {
     if (!(this.mongooseSchema instanceof mongoose.Schema)) {
       return this;
     }
@@ -789,6 +783,25 @@ export class MongooseOptions {
 
     try {
       this.mongooseSchema.add(this.schema);
+      this.mongooseSchema.eachPath((path, type: any) => {
+        const modelName: string =
+          type.schema?.$$modelName ?? type.schemaOptions?.type?.$$modelName;
+
+        if (modelName == null) {
+          return;
+        }
+
+        const metadata = A7Model.getMetadata(modelName);
+
+        if (metadata.configs.discriminatorKey == null) {
+          return;
+        }
+
+        for (const discrimination of metadata.discriminations) {
+          const disOptions = manager.getMongooseOptions(discrimination);
+          type.discriminator(disOptions.name, disOptions.mongooseSchema);
+        }
+      });
     } catch (error) {
       console.error(
         'Invalid schema to add to',

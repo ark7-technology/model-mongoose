@@ -94,8 +94,12 @@ namespace models {
     f1: Ref<ExtendCircle1>;
   }
 
-  @A7Model({})
+  @A7Model({
+    discriminatorKey: 'kind',
+  })
   export class ExtendDiscriminator extends Model {
+    kind?: string;
+
     @Basic()
     f1: string;
     @Basic()
@@ -205,6 +209,7 @@ describe('mixin.extend', () => {
 
     it('should return populates for discriminator', () => {
       const metadata = A7Model.getMetadata(models.ExtendDiscriminator);
+
       metadata.dataLevelPopulates(DefaultDataLevel.BASIC).should.be.deepEqual({
         populates: [
           {
@@ -231,7 +236,7 @@ describe('mixin.extend', () => {
             },
           },
         ],
-        projections: ['_id', 'f1', 'f3', 'f2', 'f4'],
+        projections: ['_id', 'kind', 'f1', 'f3', 'f2', 'f4'],
       });
     });
 

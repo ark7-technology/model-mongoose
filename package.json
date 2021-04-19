@@ -42,7 +42,7 @@
     "typescript": "^4.0.3"
   },
   "dependencies": {
-    "@ark7/model": "^1.0.80",
+    "@ark7/model": "^1.0.107",
     "@ark7/router": "^1.0.1",
     "@nodeswork/utils": "^0.1.14",
     "@types/debug": "^4.1.5",

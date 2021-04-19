@@ -18,8 +18,6 @@ const d = debug('ark7:model-mongoose:mixins:extend');
 
 declare module '@ark7/model/core/configs' {
   export interface Ark7ModelMetadata {
-    discriminations: ModelClass<any>[];
-
     autogenFields(manager?: Manager): string[];
     readonlyFields(manager?: Manager): string[];
 
