@@ -92,11 +92,22 @@ export function isBefore(date?: string) {
 const isBoolean: Validator = (_target, _path, val) =>
   val == null || validator.isBoolean(val);
 
+export function isByteLength(min: number, max?: number): Validator;
+export function isByteLength(options: validator.IsByteLengthOptions): Validator;
 export function isByteLength(
-  options: validator.IsByteLengthOptions,
+  options: validator.IsByteLengthOptions | number,
+  max?: number,
 ): Validator {
+  const opt: validator.IsByteLengthOptions = _.isNumber(options)
+    ? { min: options }
+    : options;
+
+  if (max != null) {
+    opt.max = max;
+  }
+
   const isByteLength: Validator = (_target, _path, val) =>
-    val == null || validator.isByteLength(val, options);
+    val == null || validator.isByteLength(val, opt);
   return isByteLength;
 }
 
@@ -215,17 +226,29 @@ const isJSON: Validator = (_target, _path, val) =>
 const isLatLong: Validator = (_target, _path, val) =>
   val == null || validator.isLatLong(val);
 
-export function isLength(options: validator.IsLengthOptions): Validator {
+export function isLength(min: number, max?: number): Validator;
+export function isLength(options: validator.IsLengthOptions): Validator;
+export function isLength(
+  options: validator.IsLengthOptions | number,
+  max?: number,
+): Validator {
+  const opt: validator.IsLengthOptions = _.isNumber(options)
+    ? { min: options }
+    : options;
+
+  if (max != null) {
+    opt.max = max;
+  }
+
   const isLength: Validator = (_target, _path, val) => {
     if (val == null) {
       return true;
     } else if (_.isArray(val)) {
       return (
-        options.min <= val.length &&
-        (options.max == null || val.length <= options.max)
+        opt.min <= val.length && (opt.max == null || val.length <= opt.max)
       );
     } else {
-      return validator.isLength(val, options);
+      return validator.isLength(val, opt);
     }
   };
   return isLength;
