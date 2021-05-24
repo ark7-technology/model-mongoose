@@ -717,7 +717,7 @@ const DEFAULT_DELETE_OPTIONS: Partial<DeleteOptions> = _.defaults(
 
 const DEFAULT_FIND_PAGINATION_OPTIONS = {
   size: 20,
-  sizeChoices: [20, 50, 100, 200, 2000],
+  sizeChoices: [20, 50, 100, 200, 1000, 2000],
 };
 
 export interface CommonResponseOptions {
