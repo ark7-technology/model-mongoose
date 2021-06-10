@@ -1,6 +1,7 @@
 import * as mongoose from 'mongoose';
 import _ from 'underscore';
 import debug from 'debug';
+import lazyload from '@ark7/lazyload';
 import {
   A7Model,
   Ark7ModelMetadata,
@@ -231,63 +232,65 @@ export class MongooseManager {
   ): mongoose.Model<mongoose.Document & ModifiedDocument<InstanceType<P>>> &
     P &
     typeof MongooseKoa {
-    const mongooseOptions = this.getMongooseOptions(cls);
-    mongooseOptions.updateMetadata(A7Model.getMetadata(MongooseKoa), this);
+    return lazyload(() => {
+      const mongooseOptions = this.getMongooseOptions(cls);
+      mongooseOptions.updateMetadata(A7Model.getMetadata(MongooseKoa), this);
 
-    this.runPlugin(MongoosePluginPeriod.BEFORE_REGISTER, mongooseOptions);
+      this.runPlugin(MongoosePluginPeriod.BEFORE_REGISTER, mongooseOptions);
 
-    _.each(
-      _.extend({}, options, {
-        toJSON: _.extend(
-          {
-            versionKey: false,
-            flattenMaps: true,
-            virtuals: true,
-          },
-          options.toJSON,
-        ),
-        toObject: _.extend(
-          {
-            versionKey: false,
-            flattenMaps: true,
-            virtuals: true,
-          },
-          options.toObject,
-        ),
-      }),
-      (value, key: keyof mongoose.SchemaOptions) => {
-        (mongooseOptions.mongooseSchema as mongoose.Schema).set(key, value);
-      },
-    );
-
-    if (!this.options.multiTenancy?.enabled) {
-      const model = parentModel.discriminator(
-        mongooseOptions.name,
-        mongooseOptions.mongooseSchema as mongoose.Schema,
+      _.each(
+        _.extend({}, options, {
+          toJSON: _.extend(
+            {
+              versionKey: false,
+              flattenMaps: true,
+              virtuals: true,
+            },
+            options.toJSON,
+          ),
+          toObject: _.extend(
+            {
+              versionKey: false,
+              flattenMaps: true,
+              virtuals: true,
+            },
+            options.toObject,
+          ),
+        }),
+        (value, key: keyof mongoose.SchemaOptions) => {
+          (mongooseOptions.mongooseSchema as mongoose.Schema).set(key, value);
+        },
       );
 
-      model.mongooseManager = this;
+      if (!this.options.multiTenancy?.enabled) {
+        const model = parentModel.discriminator(
+          mongooseOptions.name,
+          mongooseOptions.mongooseSchema as mongoose.Schema,
+        );
 
-      return model as any;
-    }
+        model.mongooseManager = this;
 
-    const parentTenantMap = this.getTenantMap(parentModel.modelName);
+        return model as any;
+      }
 
-    const tenantMap = this.createTenantMap(mongooseOptions.name);
+      const parentTenantMap = this.getTenantMap(parentModel.modelName);
 
-    for (const tenancy of this.tenants) {
-      const m = parentTenantMap[tenancy];
+      const tenantMap = this.createTenantMap(mongooseOptions.name);
 
-      const model = m.discriminator(
-        mongooseOptions.name,
-        mongooseOptions.mongooseSchema as mongoose.Schema,
-      );
+      for (const tenancy of this.tenants) {
+        const m = parentTenantMap[tenancy];
 
-      model.mongooseManager = this;
-      tenantMap[tenancy] = model;
-    }
+        const model = m.discriminator(
+          mongooseOptions.name,
+          mongooseOptions.mongooseSchema as mongoose.Schema,
+        );
 
-    return this.createProxy(tenantMap);
+        model.mongooseManager = this;
+        tenantMap[tenancy] = model;
+      }
+
+      return this.createProxy(tenantMap);
+    })();
   }
 
   register<
@@ -356,60 +359,62 @@ export class MongooseManager {
   ): mongoose.Model<mongoose.Document & ModifiedDocument<InstanceType<P>>> &
     P &
     typeof MongooseKoa {
-    dModel('register model %O', cls.name);
+    return lazyload(() => {
+      dModel('register model %O', cls.name);
 
-    const mongooseOptions = this.getMongooseOptions(cls);
+      const mongooseOptions = this.getMongooseOptions(cls);
 
-    mongooseOptions.updateMetadata(A7Model.getMetadata(MongooseKoa), this);
+      mongooseOptions.updateMetadata(A7Model.getMetadata(MongooseKoa), this);
 
-    this.runPlugin(MongoosePluginPeriod.BEFORE_REGISTER, mongooseOptions);
+      this.runPlugin(MongoosePluginPeriod.BEFORE_REGISTER, mongooseOptions);
 
-    _.each(
-      _.extend({}, options, {
-        toJSON: _.extend(
-          {
-            versionKey: false,
-            flattenMaps: true,
-            virtuals: true,
-          },
-          options.toJSON,
-        ),
-        toObject: _.extend(
-          {
-            versionKey: false,
-            flattenMaps: true,
-            virtuals: true,
-          },
-          options.toObject,
-        ),
-      }),
-      (value, key: keyof mongoose.SchemaOptions) => {
-        (mongooseOptions.mongooseSchema as mongoose.Schema).set(key, value);
-      },
-    );
-
-    if (!this.options.multiTenancy?.enabled) {
-      return this.registerModel(
-        mongooseOptions,
-        options.collection,
-        this.mongoose,
+      _.each(
+        _.extend({}, options, {
+          toJSON: _.extend(
+            {
+              versionKey: false,
+              flattenMaps: true,
+              virtuals: true,
+            },
+            options.toJSON,
+          ),
+          toObject: _.extend(
+            {
+              versionKey: false,
+              flattenMaps: true,
+              virtuals: true,
+            },
+            options.toObject,
+          ),
+        }),
+        (value, key: keyof mongoose.SchemaOptions) => {
+          (mongooseOptions.mongooseSchema as mongoose.Schema).set(key, value);
+        },
       );
-    }
 
-    const tenantMap = this.createTenantMap(mongooseOptions.name);
+      if (!this.options.multiTenancy?.enabled) {
+        return this.registerModel(
+          mongooseOptions,
+          options.collection,
+          this.mongoose,
+        );
+      }
 
-    for (const tenancy of this.tenants) {
-      let mi = this.getMongooseInstance(tenancy);
+      const tenantMap = this.createTenantMap(mongooseOptions.name);
 
-      tenantMap[tenancy] = this.registerModel(
-        mongooseOptions,
-        options.collection,
-        mi,
-        tenancy,
-      );
-    }
+      for (const tenancy of this.tenants) {
+        let mi = this.getMongooseInstance(tenancy);
 
-    return this.createProxy(tenantMap);
+        tenantMap[tenancy] = this.registerModel(
+          mongooseOptions,
+          options.collection,
+          mi,
+          tenancy,
+        );
+      }
+
+      return this.createProxy(tenantMap);
+    })();
   }
 
   get tenants(): string[] {

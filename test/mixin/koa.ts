@@ -53,6 +53,11 @@ type KOA1 = models.KOA1;
 
 describe('koa', () => {
   describe('#createMiddleware', () => {
+    beforeEach(() => {
+      KOA.db;
+      KOA1.db;
+    });
+
     it('should be rejected with missing parameters', async () => {
       const m = KOA.createMiddleware({});
 
