@@ -61,6 +61,7 @@ export class MongooseManager {
   private mongooseOptionsMap: Map<string, MongooseOptions> = new Map();
   private mongooseInstanceMap: Map<string, mongoose.Mongoose> = new Map();
   private modelMap: Map<string, TenantMap> = new Map();
+  private lazyModels: any[] = [];
 
   plugins: Map<
     MongoosePluginPeriod,
@@ -79,6 +80,12 @@ export class MongooseManager {
     }
 
     this.plugin(MongoosePluginPeriod.BEFORE_REGISTER, dataLevelProjection);
+  }
+
+  completeModelRegistration() {
+    for (const m of this.lazyModels) {
+      Reflect.has(m, '__completion');
+    }
   }
 
   getTenantMap(name: string): TenantMap {
@@ -232,7 +239,9 @@ export class MongooseManager {
   ): mongoose.Model<mongoose.Document & ModifiedDocument<InstanceType<P>>> &
     P &
     typeof MongooseKoa {
-    return lazyload(() => {
+    const m = lazyload(() => {
+      dModel('register model %O', cls.name);
+
       const mongooseOptions = this.getMongooseOptions(cls);
       mongooseOptions.updateMetadata(A7Model.getMetadata(MongooseKoa), this);
 
@@ -291,6 +300,10 @@ export class MongooseManager {
 
       return this.createProxy(tenantMap);
     })();
+
+    this.lazyModels.push(m);
+
+    return m;
   }
 
   register<
@@ -359,7 +372,7 @@ export class MongooseManager {
   ): mongoose.Model<mongoose.Document & ModifiedDocument<InstanceType<P>>> &
     P &
     typeof MongooseKoa {
-    return lazyload(() => {
+    const m = lazyload(() => {
       dModel('register model %O', cls.name);
 
       const mongooseOptions = this.getMongooseOptions(cls);
@@ -415,6 +428,10 @@ export class MongooseManager {
 
       return this.createProxy(tenantMap);
     })();
+
+    this.lazyModels.push(m);
+
+    return m;
   }
 
   get tenants(): string[] {
