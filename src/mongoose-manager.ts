@@ -39,6 +39,7 @@ declare module 'mongoose' {
 }
 
 const d = debug('ark7:model-mongoose:mongoose-manager');
+const dModel = debug('ark7:model-mongoose:mongoose-manager:model');
 const dMethod = debug('ark7:model-mongoose:mongoose-manager:method');
 const dIndex = debug('ark7:model-mongoose:mongoose-manager:index');
 const dSchema = debug('ark7:model-mongoose:mongoose-manager:schema');
@@ -355,6 +356,8 @@ export class MongooseManager {
   ): mongoose.Model<mongoose.Document & ModifiedDocument<InstanceType<P>>> &
     P &
     typeof MongooseKoa {
+    dModel('register model %O', cls.name);
+
     const mongooseOptions = this.getMongooseOptions(cls);
 
     mongooseOptions.updateMetadata(A7Model.getMetadata(MongooseKoa), this);

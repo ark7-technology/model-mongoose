@@ -463,7 +463,11 @@ export function toJSON() {
 export function toBoolean(strict?: boolean) {
   const toBoolean: Validator = (target, path, val) => {
     if (val != null && !_.isBoolean(val)) {
-      dotty.set(target, path, validator.toBoolean(val, strict));
+      dotty.set(
+        target,
+        path,
+        val === 'null' ? null : validator.toBoolean(val, strict),
+      );
     }
     return true;
   };
@@ -472,7 +476,7 @@ export function toBoolean(strict?: boolean) {
 
 export function toDate(target: any, path: string, val: any) {
   if (val != null && !_.isDate(val)) {
-    dotty.set(target, path, validator.toDate(val));
+    dotty.set(target, path, val === 'null' ? null : validator.toDate(val));
   }
   return true;
 }
