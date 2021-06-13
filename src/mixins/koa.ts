@@ -564,10 +564,26 @@ export class MongooseKoa extends MongooseModel {
 
       let doc = _.omit(ctx.request.body, fOmits);
       doc = _.extend(doc, ctx.overrides && ctx.overrides.doc);
+
+      let model = self;
+
+      if (metadata.configs.discriminatorKey != null) {
+        let key = doc[metadata.configs.discriminatorKey];
+
+        if (key == null) {
+          const m: any = await model.findOne(query, {
+            [metadata.configs.discriminatorKey]: 1,
+          });
+          key = m && m[metadata.configs.discriminatorKey];
+        }
+
+        model = self.model(key);
+      }
+
       const upDoc = {
         $set: doc,
       };
-      let updatePromise = self.findOneAndUpdate(query, upDoc, queryOption);
+      let updatePromise = model.findOneAndUpdate(query, upDoc, queryOption);
 
       if (!_.isEmpty(opts.populate) || !_.isEmpty(populates.populates)) {
         updatePromise = updatePromise.populate(

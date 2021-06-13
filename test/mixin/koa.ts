@@ -44,12 +44,35 @@ namespace models {
 
     @Short() e3?: Ref<KOA1>[];
   }
+
+  export enum KOADisType {
+    KOADis1 = 'KOADis1',
+  }
+  A7Model.provide(KOADisType);
+
+  @A7Model({
+    discriminatorKey: 'type',
+  })
+  export class KOADis extends Model {
+    type: KOADisType;
+  }
+
+  @A7Model({})
+  export class KOADis1 extends KOADis {
+    value: string;
+  }
 }
 
 const KOA = mongooseManager.register(models.KOA);
 type KOA = models.KOA;
 const KOA1 = mongooseManager.register(models.KOA1);
 type KOA1 = models.KOA1;
+
+const KOADis = mongooseManager.register(models.KOADis);
+type KOADis = models.KOADis;
+
+const KOADis1 = mongooseManager.discriminator(KOADis, models.KOADis1);
+type KOADis1 = models.KOADis1;
 
 describe('koa', () => {
   describe('#createMiddleware', () => {
@@ -211,10 +234,16 @@ describe('koa', () => {
   describe('#updateMiddleware', () => {
     let e: KOA1;
     let d: KOA;
+    let dis1: KOADis1;
 
     beforeEach(async () => {
       e = await KOA1.create({ foo: 'bar' });
       d = await KOA.create({ foo: 'bar', foo2: 'bar2', e1: e, e2: e, e3: [e] });
+
+      dis1 = await KOADis1.create({
+        type: models.KOADisType.KOADis1,
+        value: 'value',
+      });
     });
 
     it('should not update readonly data', async () => {
@@ -238,6 +267,30 @@ describe('koa', () => {
         e2: e.toJSON(),
         e1: _.extend(e.toJSON(), { foo: 'bar2' }),
         e3: [e.toJSON()],
+      });
+    });
+
+    it('should update discriminator fields', async () => {
+      const m = KOADis.updateMiddleware({ field: 'id' });
+
+      const ctx: any = {
+        request: {
+          body: {
+            type: 'KOADis1',
+            value: 'value2',
+          },
+        },
+        params: {
+          id: dis1._id.toString(),
+        },
+      };
+
+      await m(ctx, null);
+
+      ctx.body.should.be.deepEqual({
+        _id: dis1._id.toString(),
+        type: models.KOADisType.KOADis1,
+        value: 'value2',
       });
     });
   });
