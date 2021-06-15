@@ -7,7 +7,6 @@ import {
   CombinedModelField,
   Manager,
   Model,
-  ModelClass,
   manager as _manager,
   runtime,
 } from '@ark7/model';

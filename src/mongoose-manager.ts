@@ -801,7 +801,10 @@ export class MongooseOptions {
       );
     }
 
-    if (!(metadata.modelClass.prototype instanceof Model)) {
+    if (
+      !(metadata.modelClass.prototype instanceof Model) &&
+      !(metadata.configs as any)._id
+    ) {
       this.mongooseSchema.set('_id', false);
     }
     this.mongooseSchema.set('id', false);

@@ -132,7 +132,7 @@ CombinedModelField.prototype.toJSON = function toJSON(
         return metadata.toJSON(val, newOptions);
       }
       const c = val as StrictModel;
-      return c.toJSON ? c.toJSON(newOptions) : c;
+      return c?.toJSON ? c.toJSON(newOptions) : c;
     }
 
     return val;
