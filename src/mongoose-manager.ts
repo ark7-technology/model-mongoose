@@ -2,9 +2,11 @@ import * as mongoose from 'mongoose';
 import _ from 'underscore';
 import debug from 'debug';
 import lazyload from '@ark7/lazyload';
+import validator from 'validator';
 import {
   A7Model,
   Ark7ModelMetadata,
+  ID,
   MetadataError,
   Model,
   ModelClass,
@@ -29,8 +31,8 @@ declare module '@ark7/model/core/model' {
 }
 
 setIsIDFn(
-  ((x: any) =>
-    !_.isString(x) && !(x instanceof mongoose.Types.ObjectId)) as any,
+  (x: any): x is ID =>
+    validator.isMongoId(x) || x instanceof mongoose.Types.ObjectId,
 );
 
 declare module 'mongoose' {
