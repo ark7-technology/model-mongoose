@@ -32,7 +32,8 @@ declare module '@ark7/model/core/model' {
 
 setIsIDFn(
   (x: any): x is ID =>
-    validator.isMongoId(x) || x instanceof mongoose.Types.ObjectId,
+    (_.isString(x) && validator.isMongoId(x)) ||
+    x instanceof mongoose.Types.ObjectId,
 );
 
 declare module 'mongoose' {
