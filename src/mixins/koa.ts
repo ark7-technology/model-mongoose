@@ -577,7 +577,9 @@ export class MongooseKoa extends MongooseModel {
           key = m && m[metadata.configs.discriminatorKey];
         }
 
-        model = self.model(key);
+        if (key != null) {
+          model = self.model(key);
+        }
       }
 
       const upDoc = {
