@@ -521,6 +521,16 @@ export function toInt(radix?: number) {
   return toInt;
 }
 
+export function toNested(nestedKey: string) {
+  const toNested: Validator = (target, path, val) => {
+    if (val != null) {
+      dotty.set(target, path, { [nestedKey]: val });
+    }
+    return true;
+  };
+  return toNested;
+}
+
 export function trim(chars?: string) {
   const trim: Validator = (target, path, val) => {
     if (val != null) {
