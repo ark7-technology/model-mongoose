@@ -822,10 +822,7 @@ export class MongooseOptions {
 
         const metadata = A7Model.getMetadata(modelName);
 
-        if (
-          metadata.configs.discriminatorKey == null &&
-          !(metadata.configs as any).registerDiscriminatorKeyField
-        ) {
+        if (metadata.configs.discriminatorKey == null) {
           return;
         }
 
@@ -908,7 +905,10 @@ export class MongooseOptions {
         return;
       }
 
-      if (field.name === metadata.configs.discriminatorKey) {
+      if (
+        field.name === metadata.configs.discriminatorKey &&
+        !(metadata.configs as any).registerDiscriminatorKeyField
+      ) {
         return;
       }
 
