@@ -49,17 +49,20 @@ namespace models {
 const DiscriminationModel1 = mongooseManager.register(
   models.DiscriminationModel1,
 );
-type DiscriminationModel1 = mongooseManager.registerModel<models.DiscriminationModel1>;
+type DiscriminationModel1 =
+  mongooseManager.registerModel<models.DiscriminationModel1>;
 
 const DiscriminationModel2 = DiscriminationModel1.$discriminator(
   models.DiscriminationModel2,
 );
-type DiscriminationModel2 = mongooseManager.registerModel<models.DiscriminationModel2>;
+type DiscriminationModel2 =
+  mongooseManager.registerModel<models.DiscriminationModel2>;
 
 const DiscriminationModel3 = DiscriminationModel1.$discriminator(
   models.DiscriminationModel3,
 );
-type DiscriminationModel3 = mongooseManager.registerModel<models.DiscriminationModel3>;
+type DiscriminationModel3 =
+  mongooseManager.registerModel<models.DiscriminationModel3>;
 
 const DiscriminationSubModel = mongooseManager.register(
   models.DiscriminationSubModel,

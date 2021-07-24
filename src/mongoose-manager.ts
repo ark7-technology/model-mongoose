@@ -66,10 +66,8 @@ export class MongooseManager {
   private modelMap: Map<string, TenantMap> = new Map();
   private lazyModels: any[] = [];
 
-  plugins: Map<
-    MongoosePluginPeriod,
-    MongooseOptionsPluginOptions[]
-  > = new Map();
+  plugins: Map<MongoosePluginPeriod, MongooseOptionsPluginOptions[]> =
+    new Map();
 
   constructor(options: mongoose.Mongoose | MongooseManagerOptions = {}) {
     if (options instanceof mongoose.Mongoose) {
@@ -194,7 +192,7 @@ export class MongooseManager {
     T8,
     P8 extends ModelClass<T8>,
     T9,
-    P9 extends ModelClass<T9>
+    P9 extends ModelClass<T9>,
   >(
     parentModel: mongoose.Model<mongoose.Document>,
     cls: P,
@@ -329,7 +327,7 @@ export class MongooseManager {
     T8,
     P8 extends ModelClass<T8>,
     T9,
-    P9 extends ModelClass<T9>
+    P9 extends ModelClass<T9>,
   >(
     cls: P,
     options?: mongoose.SchemaOptions,
@@ -665,7 +663,7 @@ export namespace mongooseManager {
     T6 = {},
     T7 = {},
     T8 = {},
-    T9 = {}
+    T9 = {},
   > = T1 & T2 & T3 & T4 & T5 & T6 & T7 & T8 & T9 & Partial<mongoose.Document>;
 }
 
@@ -814,7 +812,7 @@ export class MongooseOptions {
 
     try {
       this.mongooseSchema.add(this.schema);
-      this.mongooseSchema.eachPath((path, type: any) => {
+      this.mongooseSchema.eachPath((_path, type: any) => {
         const modelName: string =
           type.schema?.$$modelName ?? type.schemaOptions?.type?.$$modelName;
 
@@ -824,7 +822,10 @@ export class MongooseOptions {
 
         const metadata = A7Model.getMetadata(modelName);
 
-        if (metadata.configs.discriminatorKey == null) {
+        if (
+          metadata.configs.discriminatorKey == null &&
+          !(metadata.configs as any).registerDiscriminatorKeyField
+        ) {
           return;
         }
 
