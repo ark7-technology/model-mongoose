@@ -145,6 +145,7 @@ export class MongooseKoa extends MongooseModel {
       if (!opts.noBody) {
         ctx.body = await opts.transform(
           object.toJSON(_.pick(opts, 'level')),
+          object,
           ctx,
         );
       }
@@ -262,6 +263,7 @@ export class MongooseKoa extends MongooseModel {
       if (!opts.noBody) {
         ctx.body = await opts.transform(
           object.toJSON(_.pick(opts, 'level')),
+          object,
           ctx,
         );
       }
@@ -477,6 +479,7 @@ export class MongooseKoa extends MongooseModel {
         for (let i = 0; i < objects.length; i++) {
           objects[i] = await opts.transform(
             objects[i].toJSON(_.extend(_.pick(opts, 'level'), opts.toJSON)),
+            objects[i],
             ctx,
           );
         }
@@ -607,6 +610,7 @@ export class MongooseKoa extends MongooseModel {
       if (!opts.noBody) {
         ctx.body = await opts.transform(
           object.toJSON(_.pick(opts, 'level')),
+          object,
           ctx,
         );
       }
@@ -688,7 +692,7 @@ export interface CommonOptions {
   lean?: boolean;
 
   // transform the result before write to body
-  transform?: (a: any, ctx: IRouterContext) => any | Promise<any>;
+  transform?: (a: any, model: any, ctx: IRouterContext) => any | Promise<any>;
 }
 
 const DEFAULT_COMMON_OPTIONS = {
