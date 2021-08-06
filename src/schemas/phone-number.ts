@@ -18,10 +18,14 @@ export class PhoneNumber extends BaseSchemaType {
   }
 
   validatePhoneNumber(val: string) {
-    return (
-      val == null ||
-      phoneUtil.isValidNumber(phoneUtil.parseAndKeepRawInput(val))
-    );
+    try {
+      return (
+        val == null ||
+        phoneUtil.isValidNumber(phoneUtil.parseAndKeepRawInput(val))
+      );
+    } catch (e) {
+      return false;
+    }
   }
 
   cast(val: any, options: any) {
