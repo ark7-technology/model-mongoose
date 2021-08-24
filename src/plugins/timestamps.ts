@@ -14,14 +14,16 @@ export function createdAtPlugin(
   }
 
   function setCreatedAtTimeOnUpdate(next: () => void) {
-    this.update(
-      {},
-      {
-        $setOnInsert: {
-          [fieldName]: Date.now(),
+    if (this._update?.$set?.createdAt == null) {
+      this.update(
+        {},
+        {
+          $setOnInsert: {
+            [fieldName]: Date.now(),
+          },
         },
-      },
-    );
+      );
+    }
     next();
   }
 
