@@ -353,6 +353,7 @@ export class MongooseKoa extends MongooseModel {
         }
 
         pagination = ctx.request.query || {};
+        _.defaults(pagination, opts.pagination);
         _.defaults(pagination, defaultPagination);
 
         queryOption.skip = pagination.page * pagination.size;
@@ -467,7 +468,7 @@ export class MongooseKoa extends MongooseModel {
       }
 
       if (pagination && pagination.target) {
-        dotty.set(ctx, opts.target, bodyTarget);
+        dotty.set(ctx, pagination.target, bodyTarget);
       }
 
       if (opts.triggerNext) {
