@@ -58,14 +58,13 @@
     "koa-router": "^10.0.0",
     "moment": "^2.29.1",
     "moment-timezone": "^0.5.31",
-    "mongoose": "^6.0.2",
     "object-path": "^0.11.5",
     "reflect-metadata": "^0.1.13",
     "underscore": "^1.11.0",
     "validator": "^13.1.17"
   },
   "peerDependencies": {
-    "mongoose": "^5.10.15"
+    "mongoose": "^6.0.2"
   },
   "importSort": {
     ".js, .jsx, .es6, .es": {
