@@ -106,7 +106,9 @@ namespace models {
     f3: Ref<ExtendCircle1>;
   }
 
-  @A7Model({})
+  @A7Model({
+    discriminatorKey: 'kind',
+  })
   export class ExtendDiscriminator2 extends ExtendDiscriminator {
     @Basic()
     f2: string;

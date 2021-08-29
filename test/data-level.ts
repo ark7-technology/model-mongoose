@@ -45,6 +45,9 @@ namespace models {
 
     @Basic() f1: TestDataLevel1;
 
+    // @ShortToBasic()
+    // l4: Ref<TestDataLevel4>;
+
     get g1() {
       return 'g1';
     }
@@ -55,13 +58,23 @@ namespace models {
     }
   }
 
+  @A7Model({})
+  export class TestDataLevel4 extends MongooseModel {
+    get foo() {
+      return 'bar';
+    }
+  }
+
   export interface TestDataLevel3 extends TestDataLevel2 {}
 }
 
 const TestDataLevel3 = mongooseManager.register(models.TestDataLevel3);
+const TestDataLevel4 = mongooseManager.register(models.TestDataLevel4);
 
 describe('data-level', () => {
   it('should returns proper data', async () => {
+    const foreign = await TestDataLevel4.create({});
+
     const ins = await TestDataLevel3.create({
       default2: 'default2',
       default3: 'default3',
@@ -74,6 +87,7 @@ describe('data-level', () => {
         basic1: 'basic1',
         detail1: 'detail1',
       },
+      l4: foreign,
     });
 
     _.omit(

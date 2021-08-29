@@ -49,6 +49,9 @@ const dMethod = debug('ark7:model-mongoose:mongoose-manager:method');
 const dIndex = debug('ark7:model-mongoose:mongoose-manager:index');
 const dSchema = debug('ark7:model-mongoose:mongoose-manager:schema');
 const dVirtual = debug('ark7:model-mongoose:mongoose-manager:virtual');
+const dDiscrimination = debug(
+  'ark7:model-mongoose:mongoose-manager:discrimination',
+);
 
 export type ModifiedDocument<T> = Omit<T, '_id'> & {
   _id: Types.ObjectId;
@@ -241,11 +244,12 @@ export class MongooseManager {
   ): mongoose.Model<mongoose.Document & ModifiedDocument<InstanceType<P>>> &
     P &
     typeof MongooseKoa {
+    A7Model.getMetadata(cls);
+
     const m = lazyload(() => {
       dModel('register model %O', cls.name);
 
       const mongooseOptions = this.getMongooseOptions(cls);
-      mongooseOptions.updateMetadata(A7Model.getMetadata(MongooseKoa), this);
 
       this.runPlugin(MongoosePluginPeriod.BEFORE_REGISTER, mongooseOptions);
 
@@ -716,6 +720,8 @@ export class MongooseOptions {
   addedVirtuals = new Set<Virtual>();
   addedIndexes = new Set<MongooseIndex>();
 
+  static discriminationCreations = new Map<any, Set<ModelClass<any>>>();
+
   constructor(public name: string, public metadata: Ark7ModelMetadata) {}
 
   methodNames(): string[] {
@@ -828,8 +834,27 @@ export class MongooseOptions {
         }
 
         for (const discrimination of metadata.discriminations) {
+          if (!MongooseOptions.discriminationCreations.has(this.name)) {
+            MongooseOptions.discriminationCreations.set(this.name, new Set());
+          }
+          const creations = MongooseOptions.discriminationCreations.get(
+            this.name,
+          );
+          if (creations.has(discrimination)) {
+            continue;
+          }
+
           const disOptions = manager.getMongooseOptions(discrimination);
           type.discriminator(disOptions.name, disOptions.mongooseSchema);
+          creations.add(discrimination);
+
+          dDiscrimination(
+            'create discrimination for Model: %o, path: %o, parent: %o, discrimination: %o',
+            this.name,
+            _path,
+            metadata.name,
+            discrimination.name,
+          );
         }
       });
     } catch (error) {
@@ -1042,6 +1067,7 @@ export class MongooseOptions {
             '$modelClassName',
             '$metadata',
             '$discriminatorKey',
+            'discriminations',
           ].indexOf(key) >= 0
         ) {
           return;
