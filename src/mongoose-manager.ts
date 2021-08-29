@@ -13,6 +13,8 @@ import {
   runtime,
   setIsIDFn,
 } from '@ark7/model';
+import { ConnectOptions, IndexDefinition, Mongoose, Types } from 'mongoose';
+import { IndexOptions } from 'mongoose';
 import { MongoError } from 'mongodb';
 
 import { Duration, Email, PhoneNumber, SSN, UUID } from './schemas';
@@ -27,17 +29,16 @@ import {
 import { dataLevelProjection } from './plugins/data-level';
 
 declare module '@ark7/model/core/model' {
-  interface ID extends mongoose.Types.ObjectId {}
+  interface ID extends Types.ObjectId {}
 }
 
 setIsIDFn(
   (x: any): x is ID =>
-    (_.isString(x) && validator.isMongoId(x)) ||
-    x instanceof mongoose.Types.ObjectId,
+    (_.isString(x) && validator.isMongoId(x)) || x instanceof Types.ObjectId,
 );
 
 declare module 'mongoose' {
-  interface Model<T extends Document, QueryHelpers = {}> {
+  interface Model<T, TQueryHelpers = {}, TMethods = {}> {
     mongooseManager: MongooseManager;
   }
 }
@@ -50,7 +51,7 @@ const dSchema = debug('ark7:model-mongoose:mongoose-manager:schema');
 const dVirtual = debug('ark7:model-mongoose:mongoose-manager:virtual');
 
 export type ModifiedDocument<T> = Omit<T, '_id'> & {
-  _id: mongoose.Types.ObjectId;
+  _id: Types.ObjectId;
 };
 
 export type TenantMap = {
@@ -60,17 +61,17 @@ export type TenantMap = {
 export class MongooseManager {
   options: MongooseManagerOptions = {};
 
-  private mongoose: mongoose.Mongoose;
+  private mongoose: Mongoose;
   private mongooseOptionsMap: Map<string, MongooseOptions> = new Map();
-  private mongooseInstanceMap: Map<string, mongoose.Mongoose> = new Map();
+  private mongooseInstanceMap: Map<string, Mongoose> = new Map();
   private modelMap: Map<string, TenantMap> = new Map();
   private lazyModels: any[] = [];
 
   plugins: Map<MongoosePluginPeriod, MongooseOptionsPluginOptions[]> =
     new Map();
 
-  constructor(options: mongoose.Mongoose | MongooseManagerOptions = {}) {
-    if (options instanceof mongoose.Mongoose) {
+  constructor(options: Mongoose | MongooseManagerOptions = {}) {
+    if (options instanceof Mongoose) {
       this.mongoose = options;
       this.options = {
         mongoose: options,
@@ -125,12 +126,12 @@ export class MongooseManager {
       );
   }
 
-  getMongooseInstance(tenancy: string): mongoose.Mongoose {
+  getMongooseInstance(tenancy: string): Mongoose {
     if (this.mongooseInstanceMap.has(tenancy)) {
       return this.mongooseInstanceMap.get(tenancy);
     }
 
-    const mi = new mongoose.Mongoose();
+    const mi = new Mongoose();
     mi.connect(
       this.options.multiTenancy.uris,
       _.extend(
@@ -494,7 +495,7 @@ export class MongooseManager {
   private registerModel(
     mongooseOptions: MongooseOptions,
     collection: string,
-    mInstance: mongoose.Mongoose,
+    mInstance: Mongoose,
     tenancy?: string,
   ): any {
     collection =
@@ -675,16 +676,13 @@ export interface MongooseManagerOptionsMultiTenancy {
   tenants: string[];
   tenancyFn?: (prop: string) => string;
   uris?: string;
-  options?: mongoose.ConnectionOptions;
+  options?: ConnectOptions;
   onError?: (err: any, tenancy: string) => void;
-  onMongooseInstanceCreated?: (
-    mongoose: mongoose.Mongoose,
-    tenancy: string,
-  ) => void;
+  onMongooseInstanceCreated?: (mongoose: Mongoose, tenancy: string) => void;
 }
 
 export interface MongooseManagerOptions {
-  mongoose?: mongoose.Mongoose;
+  mongoose?: Mongoose;
   multiTenancy?: MongooseManagerOptionsMultiTenancy;
 }
 
@@ -714,6 +712,9 @@ export class MongooseOptions {
   plugins: Plugin[] = [];
   indexes: MongooseIndex[] = [];
   updateValidators: UpdateValidator[] = [];
+
+  addedVirtuals = new Set<Virtual>();
+  addedIndexes = new Set<MongooseIndex>();
 
   constructor(public name: string, public metadata: Ark7ModelMetadata) {}
 
@@ -842,8 +843,12 @@ export class MongooseOptions {
     }
 
     for (const virtual of this.virtuals) {
+      if (this.addedVirtuals.has(virtual)) {
+        continue;
+      }
+
       dVirtual(
-        'create virtual for %O with name %O and options %O',
+        'create virtual for %o with name %o and options %o',
         this.name,
         virtual.name,
         virtual.options,
@@ -855,36 +860,46 @@ export class MongooseOptions {
       if (virtual.set) {
         v = v.set(virtual.set);
       }
+      this.addedVirtuals.add(virtual);
     }
 
     for (const method of this.methods) {
-      dMethod(
-        'create method for %O with name %O and function %O',
-        this.name,
-        method.name,
-        method.fn,
-      );
-      this.mongooseSchema.methods[method.name] = method.fn;
+      if (this.mongooseSchema.methods[method.name] !== method.fn) {
+        dMethod(
+          'create method for %o with name %o and function %o',
+          this.name,
+          method.name,
+          method.fn,
+        );
+        this.mongooseSchema.methods[method.name] = method.fn;
+      }
     }
 
     for (const method of this.statics) {
-      dMethod(
-        'create static function for %O with name %O and function %O',
-        this.name,
-        method.name,
-        method.fn,
-      );
-      this.mongooseSchema.statics[method.name] = method.fn;
+      if (this.mongooseSchema.statics[method.name] !== method.fn) {
+        dMethod(
+          'create static function for %o with name %o and function %o',
+          this.name,
+          method.name,
+          method.fn,
+        );
+        this.mongooseSchema.statics[method.name] = method.fn;
+      }
     }
 
     for (const index of this.indexes) {
+      if (this.addedIndexes.has(index)) {
+        continue;
+      }
+
       dIndex(
-        'create index for %O with fields %O and options %O',
+        'create index for %o with fields %o and options %o',
         this.name,
         index.fields,
         index.options,
       );
       this.mongooseSchema.index(index.fields, index.options);
+      this.addedIndexes.add(index);
     }
 
     return this;
@@ -1041,9 +1056,9 @@ export class MongooseOptions {
       });
     }
 
-    options.indexes = metadata.configs.indexes || [];
+    options.indexes = (metadata.configs.indexes as any) || [];
 
-    dSchema('create schema for %O with %O', metadata.name, options.schema);
+    dSchema('create schema for %o with %o', metadata.name, options.schema);
 
     return options;
   }
@@ -1097,11 +1112,8 @@ export interface Plugin {
 }
 
 export interface MongooseIndex {
-  fields: object;
-  options?: {
-    expires?: string;
-    [other: string]: any;
-  };
+  fields: IndexDefinition;
+  options?: IndexOptions;
 }
 
 export interface UpdateValidator {

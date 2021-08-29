@@ -27,7 +27,7 @@ describe('db', () => {
       },
       posts: [],
     }).should.be.rejectedWith(
-      'User validation failed: name.first: Path `first` (`ffffff`) is longer than the maximum allowed length (5)., name: Validation failed: first: Path `first` (`ffffff`) is longer than the maximum allowed length (5).',
+      'User validation failed: name.first: Path `first` (`ffffff`) is longer than the maximum allowed length (5).',
     );
   });
 

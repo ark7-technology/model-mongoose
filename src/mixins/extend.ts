@@ -1,4 +1,3 @@
-import * as mongoose from 'mongoose';
 import _ from 'underscore';
 import debug from 'debug';
 import {
@@ -10,6 +9,7 @@ import {
   manager as _manager,
   runtime,
 } from '@ark7/model';
+import { PopulateOptions } from 'mongoose';
 
 import { CircleDependencyError } from '../errors';
 
@@ -52,7 +52,7 @@ declare module '@ark7/model/core/fields' {
 
 export interface DataLevelPopulate {
   projections: string[];
-  populates: mongoose.ModelPopulateOptions[];
+  populates: PopulateOptions[];
 }
 
 let id: number = 0;

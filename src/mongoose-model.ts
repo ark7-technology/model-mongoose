@@ -36,6 +36,16 @@ declare module 'mongoose' {
   }
 }
 
+declare module 'mongoose' {
+  interface ToObjectOptions {
+    level?: number;
+  }
+
+  interface QueryOptions {
+    level?: number;
+  }
+}
+
 declare module '@ark7/model/core/configs' {
   interface Ark7ModelMetadata {
     toJSON: (o: any, options: DocumentToObjectOptions) => any;
@@ -191,7 +201,7 @@ export class DiscriminateMongooseModel extends MongooseModel {
     T8,
     P8 extends ModelClass<T8>,
     T9,
-    P9 extends ModelClass<T9>
+    P9 extends ModelClass<T9>,
   >(
     cls: P,
     options?: mongoose.SchemaOptions,

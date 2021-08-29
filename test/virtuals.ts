@@ -1,13 +1,13 @@
 import 'should';
 
-import { A7Model, Mixin, Model, StrictModel, Virtual } from '@ark7/model';
+import { A7Model, ID, Mixin, Model, StrictModel, Virtual } from '@ark7/model';
 
 import { mongooseManager } from '../src';
 
 namespace models {
   @A7Model({})
   export class VirtualModel3 extends Model {
-    mm: string;
+    mm: ID;
 
     get v3() {
       return 'v3';
@@ -75,13 +75,21 @@ describe('virtuals', () => {
 
     ins3.v3.should.be.eql('v3');
 
+    const d = await VirtualModel3.find({
+      mm: {
+        $in: [ins._id.toString()],
+      },
+    });
+
     const insP = await VirtualModel.findById(
       ins._id,
       {},
       {
-        populate: ['v4', 'v3', 'v5'] as any,
+        populate: ['v4', 'v3', 'v5'],
       },
     );
+    // await insP.populate('v3');
+    // console.log('insP', insP);
     insP.v3.should.not.be.null();
     insP.v4.should.not.be.null();
     insP.v5.should.not.be.null();

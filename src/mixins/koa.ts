@@ -10,6 +10,7 @@ import {
 } from '@ark7/model';
 import { IMiddleware, IRouterContext } from 'koa-router';
 import { NodesworkError } from '@nodeswork/utils';
+import { PopulateOptions } from 'mongoose';
 import { withInheritedProps as dotty } from 'object-path';
 
 import { MongooseModel } from '../mongoose-model';
@@ -582,7 +583,7 @@ export class MongooseKoa extends MongooseModel {
         }
 
         if (key != null) {
-          model = self.model(key);
+          model = (self as any).model(key);
         }
       }
 
@@ -629,7 +630,6 @@ export class MongooseKoa extends MongooseModel {
     options: DeleteOptions,
     manager: Manager = _manager,
   ): IMiddleware {
-    const metadata = this.getMetadata(manager);
     const self = this.cast();
 
     options = _.defaults({}, options, DEFAULT_DELETE_OPTIONS);
@@ -748,7 +748,7 @@ export interface CommonResponseOptions {
   project?: string[]; // the data fields for projection
 
   // populate specific fields only
-  populate?: mongoose.ModelPopulateOptions[];
+  populate?: PopulateOptions[];
 }
 
 export interface CommonReadOptions {

@@ -2,13 +2,8 @@ import * as mongoose from 'mongoose';
 
 // import { sbaseMongooseConfig } from '../src/mongoose';
 
-mongoose.connect('mongodb://localhost:27017/model-mongoose-test', {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-});
+mongoose.connect('mongodb://localhost:27017/model-mongoose-test', {});
 // mongoose.set('debug', true);
-mongoose.set('useCreateIndex', true);
-mongoose.set('useFindAndModify', false);
 
 // sbaseMongooseConfig.multiTenancy.uris = 'mongodb://localhost:27017/test';
 // sbaseMongooseConfig.multiTenancy.options = {
@@ -20,6 +15,4 @@ mongoose.set('useFindAndModify', false);
 // sbaseMongooseConfig.multiTenancy.tenants = ['mtTest'];
 
 // sbaseMongooseConfig.multiTenancy.onMongooseInstanceCreated = (mi) => {
-// mi.set('useCreateIndex', true);
-// mi.set('useFindAndModify', false);
 // };
