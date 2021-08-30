@@ -43,6 +43,12 @@ declare module 'mongoose' {
   }
 }
 
+declare module '@ark7/model/core/fields' {
+  interface StrictConfigOptions {
+    setDefaultsOnInsert?: boolean;
+  }
+}
+
 const d = debug('ark7:model-mongoose:mongoose-manager');
 const dModel = debug('ark7:model-mongoose:mongoose-manager:model');
 const dMethod = debug('ark7:model-mongoose:mongoose-manager:method');
@@ -716,6 +722,7 @@ export class MongooseOptions {
   plugins: Plugin[] = [];
   indexes: MongooseIndex[] = [];
   updateValidators: UpdateValidator[] = [];
+  setDefaultsOnInsert: boolean;
 
   addedVirtuals = new Set<Virtual>();
   addedIndexes = new Set<MongooseIndex>();
