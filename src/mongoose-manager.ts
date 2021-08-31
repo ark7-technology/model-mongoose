@@ -70,6 +70,8 @@ export class MongooseManager {
   private modelMap: Map<string, TenantMap> = new Map();
   private lazyModels: any[] = [];
 
+  indexErrorHandler: (err: Error) => void;
+
   plugins: Map<MongoosePluginPeriod, MongooseOptionsPluginOptions[]> =
     new Map();
 
@@ -517,10 +519,14 @@ export class MongooseManager {
 
     model.on('index', (err: any) => {
       if (err) {
-        throw new Error(
-          `${mongooseOptions.name} index error: ${err}` +
-            (tenancy != null ? `, tenancy: ${tenancy}` : ''),
-        );
+        if (this.indexErrorHandler != null) {
+          this.indexErrorHandler(err);
+        } else {
+          throw new Error(
+            `${mongooseOptions.name} index error: ${err}` +
+              (tenancy != null ? `, tenancy: ${tenancy}` : ''),
+          );
+        }
       }
     });
 
