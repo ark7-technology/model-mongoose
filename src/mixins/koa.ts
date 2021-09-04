@@ -339,18 +339,12 @@ export class MongooseKoa extends MongooseModel {
 
     async function find(ctx: IRouterContext, next: INext) {
       const opts: FindOptions = _.extend(
-        { strictQuery: false },
+        { strict: false },
         options,
         ctx.overrides && ctx.overrides.options,
       );
       const query = (ctx.overrides && ctx.overrides.query) || {};
-      const queryOption: any = _.pick(
-        opts,
-        'sort',
-        'lean',
-        'level',
-        'strictQuery',
-      );
+      const queryOption: any = _.pick(opts, 'sort', 'lean', 'level', 'strict');
       let pagination: any = null;
 
       if (opts.pagination) {
@@ -399,7 +393,7 @@ export class MongooseKoa extends MongooseModel {
           : {
               pageSize: pagination.size,
               page: pagination.page,
-              total: await self.find(query).countDocuments(),
+              total: await self.find(query, {}, queryOption).countDocuments(),
               data: object,
             };
 
@@ -807,7 +801,7 @@ export interface FindOptions
   };
 
   sort?: object;
-  strictQuery?: boolean;
+  strict?: boolean;
 }
 
 export interface UpdateOptions
