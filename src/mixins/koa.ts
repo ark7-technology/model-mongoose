@@ -393,7 +393,9 @@ export class MongooseKoa extends MongooseModel {
           : {
               pageSize: pagination.size,
               page: pagination.page,
-              total: await self.find(query, {}, queryOption).countDocuments(),
+              total: await self
+                .find(query, {}, _.pick(queryOption, 'strict'))
+                .countDocuments(),
               data: object,
             };
 

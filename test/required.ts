@@ -22,7 +22,7 @@ type TestRequiredModel2 =
 
 describe('required', () => {
   beforeEach(async () => {
-    await TestRequiredModel2.remove({});
+    await TestRequiredModel2.deleteMany({});
   });
 
   it('sets correct required value', async () => {
