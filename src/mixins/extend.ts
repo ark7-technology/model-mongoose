@@ -226,7 +226,8 @@ CombinedModelField.prototype.dataLevelPopulates = _.memoize(function (
           .object()
           .value(),
         populate: isPopulate ? next.populates : [],
-      });
+        strictPopulate: false,
+      } as any);
     }
 
     if (!isForeignField) {
