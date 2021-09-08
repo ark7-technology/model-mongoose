@@ -154,7 +154,12 @@ describe('mixin.extend', () => {
 
       metadata.dataLevelPopulates(DefaultDataLevel.DETAIL).should.be.deepEqual({
         populates: [
-          { path: 'm4', select: { _id: 1, a1: 1, f1: 1 }, populate: [] },
+          {
+            path: 'm4',
+            select: { _id: 1, a1: 1, f1: 1 },
+            populate: [],
+            strictPopulate: false,
+          },
         ],
         projections: ['m1.f1', 'm1.a1', 'f2', 'm3.f1', 'm3.a1', 'm4'],
       });
@@ -171,10 +176,12 @@ describe('mixin.extend', () => {
               _id: 1,
               f1: 1,
             },
+            strictPopulate: false,
           },
           {
             path: 'v2s',
             populate: [],
+            strictPopulate: false,
           },
         ],
         projections: ['_id'],
@@ -190,10 +197,12 @@ describe('mixin.extend', () => {
               a1: 1,
               f1: 1,
             },
+            strictPopulate: false,
           },
           {
             path: 'v2s',
             populate: [],
+            strictPopulate: false,
           },
           {
             path: 'v3s',
@@ -203,6 +212,7 @@ describe('mixin.extend', () => {
               a1: 1,
               f1: 1,
             },
+            strictPopulate: false,
           },
         ],
         projections: ['_id'],
@@ -220,6 +230,7 @@ describe('mixin.extend', () => {
             select: {
               _id: 1,
             },
+            strictPopulate: false,
           },
           {
             path: 'f4',
@@ -230,12 +241,14 @@ describe('mixin.extend', () => {
                 select: {
                   _id: 1,
                 },
+                strictPopulate: false,
               },
             ],
             select: {
               _id: 1,
               f1: 1,
             },
+            strictPopulate: false,
           },
         ],
         projections: ['_id', 'kind', 'f1', 'f3', 'f2', 'f4'],

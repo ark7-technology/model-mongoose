@@ -50,6 +50,12 @@ declare module '@ark7/model/core/fields' {
   }
 }
 
+declare module 'mongoose' {
+  export interface PopulateOptions {
+    strictPopulate: boolean;
+  }
+}
+
 export interface DataLevelPopulate {
   projections: string[];
   populates: PopulateOptions[];
@@ -227,7 +233,7 @@ CombinedModelField.prototype.dataLevelPopulates = _.memoize(function (
           .value(),
         populate: isPopulate ? next.populates : [],
         strictPopulate: false,
-      } as any);
+      });
     }
 
     if (!isForeignField) {
@@ -244,7 +250,10 @@ CombinedModelField.prototype.dataLevelPopulates = _.memoize(function (
       _.each(next.populates, (p) =>
         res.populates.push(
           _.defaults(
-            { path: `${this.name}.${this.isMap ? '$*.' : ''}${p.path}` },
+            {
+              path: `${this.name}.${this.isMap ? '$*.' : ''}${p.path}`,
+              strictPopulate: false,
+            },
             p,
           ),
         ),
@@ -260,6 +269,7 @@ CombinedModelField.prototype.dataLevelPopulates = _.memoize(function (
     res.populates.push({
       path: this.name,
       populate: [],
+      strictPopulate: false,
     });
   }
 
