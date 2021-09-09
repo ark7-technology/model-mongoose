@@ -52,7 +52,7 @@ declare module '@ark7/model/core/fields' {
 
 declare module 'mongoose' {
   export interface PopulateOptions {
-    strictPopulate: boolean;
+    strictPopulate?: boolean;
   }
 }
 
