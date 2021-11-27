@@ -4,9 +4,11 @@ import * as _ from 'underscore';
 import {
   A7Model,
   Basic,
+  BasicToBasic,
   DefaultDataLevel,
   Detail,
   Mixin,
+  Ref,
   StrictModel,
 } from '@ark7/model';
 
@@ -45,8 +47,8 @@ namespace models {
 
     @Basic() f1: TestDataLevel1;
 
-    // @ShortToBasic()
-    // l4: Ref<TestDataLevel4>;
+    @BasicToBasic()
+    l4: Ref<TestDataLevel4>;
 
     get g1() {
       return 'g1';
@@ -63,6 +65,8 @@ namespace models {
     get foo() {
       return 'bar';
     }
+
+    @Detail() detail1: string;
   }
 
   export interface TestDataLevel3 extends TestDataLevel2 {}
@@ -73,7 +77,9 @@ const TestDataLevel4 = mongooseManager.register(models.TestDataLevel4);
 
 describe('data-level', () => {
   it('should returns proper data', async () => {
-    const foreign = await TestDataLevel4.create({});
+    const foreign = await TestDataLevel4.create({
+      detail1: 'detail1',
+    });
 
     const ins = await TestDataLevel3.create({
       default2: 'default2',
@@ -93,6 +99,7 @@ describe('data-level', () => {
     _.omit(
       ins.toJSON({ level: DefaultDataLevel.BASIC }),
       '_id',
+      'l4',
     ).should.be.deepEqual({
       default3: 'default3',
       basic3: 'basic3',
@@ -114,6 +121,7 @@ describe('data-level', () => {
       f1: { default1: 'default1', basic1: 'basic1' },
       default2: 'default2',
       basic2: 'basic2',
+      l4: foreign.toJSON({ level: DefaultDataLevel.BASIC }),
     });
   });
 });
