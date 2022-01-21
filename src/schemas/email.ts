@@ -11,15 +11,15 @@ export class Email extends BaseSchemaType {
   }
 
   validateEmail(val: string) {
-    return /^[a-zA-Z0-9._+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/.test(val);
+    return /^[a-zA-Z0-9._+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,16}$/.test(val);
   }
 
-  cast(val: any, options :any) {
+  cast(val: any, options: any) {
     // Allow direct pass of regex in query.
     if (options instanceof mongoose.Query && val instanceof RegExp) {
       return val;
     }
-    
+
     if (val.constructor !== String) {
       throw new (mongoose.SchemaType as any).CastError(
         'Email',
