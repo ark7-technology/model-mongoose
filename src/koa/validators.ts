@@ -714,22 +714,22 @@ export function toRegEx(flags?: string) {
   return toRegEx;
 }
 
-export function toLowercase() {
-  const toLowercase: Validator = (target, path, val) => {
+export function toLowerCase() {
+  const toLowerCase: Validator = (target, path, val) => {
     if (val != null) {
-      dotty.set(target, path, val.toLowercase());
+      dotty.set(target, path, val.toLowerCase());
     }
     return true;
   };
-  return toLowercase;
+  return toLowerCase;
 }
 
-export function toUppercase() {
-  const toUppercase: Validator = (target, path, val) => {
+export function toUpperCase() {
+  const toUpperCase: Validator = (target, path, val) => {
     if (val != null) {
-      dotty.set(target, path, val.toUppercase());
+      dotty.set(target, path, val.toUpperCase());
     }
     return true;
   };
-  return toUppercase;
+  return toUpperCase;
 }
