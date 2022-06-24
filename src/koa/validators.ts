@@ -713,3 +713,23 @@ export function toRegEx(flags?: string) {
   };
   return toRegEx;
 }
+
+export function toLowercase() {
+  const toLowercase: Validator = (target, path, val) => {
+    if (val != null) {
+      dotty.set(target, path, val.toLowercase());
+    }
+    return true;
+  };
+  return toLowercase;
+}
+
+export function toUppercase() {
+  const toUppercase: Validator = (target, path, val) => {
+    if (val != null) {
+      dotty.set(target, path, val.toUppercase());
+    }
+    return true;
+  };
+  return toUppercase;
+}
