@@ -11,7 +11,10 @@ export class Email extends BaseSchemaType {
   }
 
   validateEmail(val: string) {
-    return /^[a-zA-Z0-9._+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,16}$/.test(val);
+    return (
+      val == null ||
+      /^[a-zA-Z0-9._+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,16}$/.test(val)
+    );
   }
 
   cast(val: any, options: any) {
