@@ -14,7 +14,9 @@ export class SSN extends BaseSchemaType {
   }
 
   validateSSN(val: string) {
-    return COMPACT_SSN_REGES.test(val) || FULL_SSN_REGEX.test(val);
+    return (
+      val == null || COMPACT_SSN_REGES.test(val) || FULL_SSN_REGEX.test(val)
+    );
   }
 
   cast(val: any, options: any) {
