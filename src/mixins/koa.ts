@@ -389,14 +389,14 @@ export class MongooseKoa extends MongooseModel {
 
       const bodyTarget: any =
         pagination == null
-          ? object
+          ? _.clone(object)
           : {
               pageSize: pagination.size,
               page: pagination.page,
               total: await self
                 .find(query, {}, _.pick(queryOption, 'strict'))
                 .countDocuments(),
-              data: object,
+              data: _.clone(object),
             };
 
       if (pagination?.agg) {
@@ -479,20 +479,17 @@ export class MongooseKoa extends MongooseModel {
       }
 
       if (!opts.noBody) {
-        const objects = dotty.get(ctx, opts.target);
-        const data: any[] = [];
+        const objects = pagination == null ? bodyTarget : bodyTarget.data;
         for (let i = 0; i < objects.length; i++) {
-          data.push(
-            await opts.transform(
-              objects[i].toJSON(_.extend(_.pick(opts, 'level'), opts.toJSON)),
-              objects[i],
-              ctx,
-            ),
+          objects[i] = await opts.transform(
+            objects[i].toJSON(_.extend(_.pick(opts, 'level'), opts.toJSON)),
+            objects[i],
+            ctx,
           );
         }
 
         if (pagination && pagination.target) {
-          bodyTarget.data = data;
+          bodyTarget.data = objects;
         }
 
         ctx.body = bodyTarget;
