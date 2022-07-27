@@ -67,6 +67,20 @@ Ark7ModelMetadata.prototype.toJSON = function toJSON(
     return obj;
   }
 
+  if (
+    this.modelClass.$discriminatorKey != null &&
+    obj[this.modelClass.$discriminatorKey] &&
+    obj[this.modelClass.$discriminatorKey] !== this.name
+  ) {
+    const metadata = A7Model.getMetadata(
+      obj[this.modelClass.$discriminatorKey],
+    );
+
+    if (metadata != null) {
+      return metadata.toJSON(obj, options);
+    }
+  }
+
   const ret: any = {};
   for (const name of this.combinedFields.keys()) {
     const field = this.combinedFields.get(name);

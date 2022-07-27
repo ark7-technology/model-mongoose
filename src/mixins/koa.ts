@@ -480,16 +480,19 @@ export class MongooseKoa extends MongooseModel {
 
       if (!opts.noBody) {
         const objects = dotty.get(ctx, opts.target);
+        const data: any[] = [];
         for (let i = 0; i < objects.length; i++) {
-          objects[i] = await opts.transform(
-            objects[i].toJSON(_.extend(_.pick(opts, 'level'), opts.toJSON)),
-            objects[i],
-            ctx,
+          data.push(
+            await opts.transform(
+              objects[i].toJSON(_.extend(_.pick(opts, 'level'), opts.toJSON)),
+              objects[i],
+              ctx,
+            ),
           );
         }
 
         if (pagination && pagination.target) {
-          bodyTarget.data = objects;
+          bodyTarget.data = data;
         }
 
         ctx.body = bodyTarget;
