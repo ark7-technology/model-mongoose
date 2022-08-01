@@ -70,7 +70,8 @@ Ark7ModelMetadata.prototype.toJSON = function toJSON(
   if (
     this.modelClass.$discriminatorKey != null &&
     obj[this.modelClass.$discriminatorKey] &&
-    obj[this.modelClass.$discriminatorKey] !== this.name
+    obj[this.modelClass.$discriminatorKey].toLowerCase() !==
+      this.name.toLowerCase()
   ) {
     const metadata = A7Model.getMetadata(
       obj[this.modelClass.$discriminatorKey],
