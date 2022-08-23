@@ -89,6 +89,15 @@ export class MongooseManager {
     this.plugin(MongoosePluginPeriod.BEFORE_REGISTER, dataLevelProjection);
   }
 
+  getModelName(model: any): string {
+    const c = model.__proto__.constructor;
+    return c.modelName ?? c.schema?.$$modelName ?? c.name;
+  }
+
+  getModelMetadata(model: any) {
+    return A7Model.getMetadata(this.getModelName(model));
+  }
+
   completeModelRegistration() {
     for (const m of this.lazyModels) {
       Reflect.has(m, '__completion');
