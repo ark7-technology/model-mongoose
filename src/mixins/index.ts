@@ -1,1 +1,2 @@
 import './extend';
+import './koa';
