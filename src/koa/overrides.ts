@@ -37,6 +37,9 @@ export type OverrideRuleFormat = 'regex' | 'date' | 'string' | 'seconds';
  *
  * 4. Append to array target:
  *    overrides(['constValue', 'query.$or.[].status'])
+ *
+ * 5. Set element in an array:
+ *    overrides(['constValue', 'query.$or.[0].status'])
  */
 export function overrides(...rules: OverrideRule[]): Router.IMiddleware {
   const rs: {
@@ -137,12 +140,16 @@ export function clearOverrides(): Router.IMiddleware {
 function setValue(target: any, keys: string[], value: any) {
   const parts: string[] = [];
   keys = _.map(keys, (key: string) => {
-    if (key === '[]') {
+    if (key.startsWith('[') && key.endsWith(']')) {
       if (!dotty.has(target, parts)) {
         dotty.set(target, parts, []);
       }
 
-      key = dotty.get(target, parts).length.toString();
+      if (key.length > 2) {
+        key = key.substring(1, key.length - 1);
+      } else {
+        key = dotty.get(target, parts).length.toString();
+      }
     }
 
     parts.push(key);
