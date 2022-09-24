@@ -4,6 +4,7 @@ import _ from 'underscore';
 import {
   A7Model,
   Basic,
+  CompoundIndex,
   Confidential,
   Default,
   DefaultDataLevel,
@@ -27,6 +28,7 @@ namespace models {
   }
 
   @A7Model({})
+  @CompoundIndex({ foo2: 'text' }, { name: 'text-search' })
   export class KOA extends Model {
     @Basic() foo: string;
 
@@ -174,7 +176,7 @@ describe('koa', () => {
       });
       d2 = await KOA.create({
         foo: 'bar',
-        foo2: 'bar2',
+        foo2: 'test bar2',
         e1: e,
         e2: e,
         e3: [e],
@@ -228,6 +230,33 @@ describe('koa', () => {
           currentAndAfter: 10,
         },
       });
+    });
+
+    it('should find data with search successfully', async () => {
+      const m = KOA.findMiddleware({});
+      const ctx: any = {
+        request: {},
+        params: {},
+        overrides: {
+          query: {
+            $text: {
+              $search: 'test bar2',
+            },
+          },
+          sort: {
+            score: {
+              $meta: 'textScore',
+            },
+          },
+        },
+      };
+      await m(ctx, null);
+
+      // d2 should be ranked before d1 for relevance
+      ctx.body.should.be.deepEqual([
+        d2.toJSON({ level: DefaultDataLevel.SHORT }),
+        d1.toJSON({ level: DefaultDataLevel.SHORT }),
+      ]);
     });
   });
 

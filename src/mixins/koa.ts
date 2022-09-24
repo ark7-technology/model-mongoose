@@ -371,11 +371,22 @@ export class MongooseKoa extends MongooseModel {
 
       d('findMiddleware.populates: %o', populates);
 
-      let queryPromise = self.find(
-        query,
-        _.union(opts.project, populates.projections),
-        queryOption,
-      );
+      let projections: any = _.union(opts.project, populates.projections);
+
+      // need to add { score: { $meta: "textScore"} } to the projections when using $meta.textScore for sorting
+      if (queryOption.sort?.score?.$meta) {
+        projections = _.reduce(
+          projections,
+          (obj: any, p) => {
+            obj[p] = 1;
+            return obj;
+          },
+          {},
+        );
+        projections['score'] = { $meta: 'textScore' };
+      }
+
+      let queryPromise = self.find(query, projections, queryOption);
 
       if (!_.isEmpty(opts.populate) || !_.isEmpty(populates.populates)) {
         queryPromise = queryPromise.populate(
