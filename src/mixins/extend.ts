@@ -8,6 +8,7 @@ import {
   Model,
   manager as _manager,
   runtime,
+  EncryptedFieldOptions,
 } from '@ark7/model';
 import { PopulateOptions } from 'mongoose';
 
@@ -15,10 +16,16 @@ import { CircleDependencyError } from '../errors';
 
 const d = debug('ark7:model-mongoose:mixins:extend');
 
+export interface NamedEncryptedField {
+  name: string;
+  fieldDef: EncryptedFieldOptions;
+}
+
 declare module '@ark7/model/core/configs' {
   export interface Ark7ModelMetadata {
     autogenFields(manager?: Manager): string[];
     readonlyFields(manager?: Manager): string[];
+    encryptedFields(manager?: Manager): NamedEncryptedField[];
 
     /**
      * Returns the data level populations.
@@ -37,6 +44,7 @@ declare module '@ark7/model/core/fields' {
     isAutogen: boolean;
     autogenFields(manager?: Manager): string[];
     readonlyFields(manager?: Manager): string[];
+    encryptedFields(manager?: Manager): NamedEncryptedField[];
     isMongooseField: boolean;
 
     /**
@@ -162,6 +170,18 @@ Ark7ModelMetadata.prototype.readonlyFields = _.memoize(function (
   d('Get Ark7ModelMetadata(%O).readonlyFields', this.name);
   return _.chain(Array.from(this.combinedFields.values()))
     .map((c) => c.readonlyFields(manager))
+    .flatten()
+    .value();
+},
+cashKey);
+
+Ark7ModelMetadata.prototype.encryptedFields = _.memoize(function (
+  this: Ark7ModelMetadata,
+  manager: Manager = _manager,
+) {
+  d('Get Ark7ModelMetadata(%O).encryptedFields', this.name);
+  return _.chain(Array.from(this.combinedFields.values()))
+    .map((c) => c.encryptedFields(manager))
     .flatten()
     .value();
 },
@@ -334,6 +354,35 @@ CombinedModelField.prototype.readonlyFields = _.memoize(function (
     names.push(...nested);
   }
   return names;
+},
+cashKey);
+
+CombinedModelField.prototype.encryptedFields = _.memoize(function (
+  this: CombinedModelField,
+  manager: Manager = _manager,
+) {
+  d('Get CombinedModelField(%O).encryptedFields', this.name);
+  const namedFields: NamedEncryptedField[] = [];
+  if (this.field?.encrypted) {
+    namedFields.push({ name: this.name, fieldDef: this.field });
+  }
+
+  const type = this.type;
+
+  if (
+    this.isMongooseField &&
+    runtime.isReferenceType(type) &&
+    !this.isReference &&
+    type.referenceName !== 'ID'
+  ) {
+    const metadata = manager.getMetadata(type.referenceName);
+    const nested = _.map(metadata.encryptedFields(manager), (f) => {
+      return { name: `${this.name}.${f.name}`, fieldDef: f.fieldDef };
+    });
+
+    namedFields.push(...nested);
+  }
+  return namedFields;
 },
 cashKey);
 

@@ -27,6 +27,11 @@ import {
   TRUE_SUITABLE,
 } from './plugin';
 import { dataLevelProjection } from './plugins/data-level';
+import { encryptedField } from './plugins/encrypted-field';
+import {
+  ClientEncryption,
+  ClientEncryptionOptions,
+} from 'mongodb-client-encryption';
 
 declare module '@ark7/model/core/model' {
   interface ID extends Types.ObjectId {}
@@ -87,6 +92,7 @@ export class MongooseManager {
     }
 
     this.plugin(MongoosePluginPeriod.BEFORE_REGISTER, dataLevelProjection);
+    this.plugin(MongoosePluginPeriod.BEFORE_REGISTER, encryptedField);
   }
 
   getModelName(model: any): string {
@@ -185,6 +191,37 @@ export class MongooseManager {
 
       plugin.fn(options);
     }
+  }
+
+  _encryption: ClientEncryption;
+
+  getMongooseConnection() {
+    const mongooseInstance = this.options.multiTenancy?.enabled
+      ? this.getMongooseInstance(
+          this.options.multiTenancy.defaultCollectionNamespace,
+        )
+      : this.mongoose;
+
+    return mongooseInstance?.connection;
+  }
+
+  getClientEncryption() {
+    if (this.options?.multiTenancy?.autoEncryption == null) {
+      return null;
+    }
+
+    if (this._encryption == null) {
+      const mongoClient = this.getMongooseConnection()?.getClient();
+
+      if (mongoClient != null) {
+        this._encryption = new ClientEncryption(
+          mongoClient,
+          this.options.multiTenancy.autoEncryption,
+        );
+      }
+    }
+
+    return this._encryption;
   }
 
   discriminator<
@@ -696,6 +733,7 @@ export interface MongooseManagerOptionsMultiTenancy {
   tenancyFn?: (prop: string) => string;
   uris?: string;
   options?: ConnectOptions;
+  autoEncryption?: ClientEncryptionOptions;
   onError?: (err: any, tenancy: string) => void;
   onMongooseInstanceCreated?: (mongoose: Mongoose, tenancy: string) => void;
 }

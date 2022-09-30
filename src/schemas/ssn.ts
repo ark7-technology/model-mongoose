@@ -1,5 +1,6 @@
 import * as mongoose from 'mongoose';
 import _ from 'underscore';
+import { isEncrypted } from '../plugins/encrypted-field';
 
 import { BaseSchemaType } from './base-schema-type';
 
@@ -51,7 +52,7 @@ export class SSN extends BaseSchemaType {
   }
 
   static test(val: string): boolean {
-    return FULL_SSN_REGEX.test(val);
+    return FULL_SSN_REGEX.test(val) || isEncrypted(val);
   }
 }
 
