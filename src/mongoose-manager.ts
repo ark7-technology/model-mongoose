@@ -6,6 +6,7 @@ import validator from 'validator';
 import {
   A7Model,
   Ark7ModelMetadata,
+  EncryptedFieldOptions,
   ID,
   MetadataError,
   Model,
@@ -27,7 +28,11 @@ import {
   TRUE_SUITABLE,
 } from './plugin';
 import { dataLevelProjection } from './plugins/data-level';
-import { encryptedField } from './plugins/encrypted-field';
+import {
+  encryptedField,
+  decryptValue,
+  encryptValue,
+} from './plugins/encrypted-field';
 import {
   ClientEncryption,
   ClientEncryptionOptions,
@@ -167,10 +172,12 @@ export class MongooseManager {
         }
       },
     );
+
+    this.mongooseInstanceMap.set(tenancy, mi);
+
     if (this.options.multiTenancy.onMongooseInstanceCreated) {
       this.options.multiTenancy.onMongooseInstanceCreated(mi, tenancy);
     }
-    this.mongooseInstanceMap.set(tenancy, mi);
     return mi;
   }
 
@@ -222,6 +229,14 @@ export class MongooseManager {
     }
 
     return this._encryption;
+  }
+
+  decryptValue(encryptedValue: string) {
+    return decryptValue(this.getClientEncryption(), encryptedValue);
+  }
+
+  encryptValue(fieldDef: EncryptedFieldOptions, rawValue: string) {
+    return encryptValue(this.getClientEncryption(), fieldDef, rawValue);
   }
 
   discriminator<
