@@ -212,9 +212,7 @@ export class MongooseManager {
 
   getMongooseConnection() {
     const mongooseInstance = this.options.multiTenancy?.enabled
-      ? this.getMongooseInstance(
-          this.options.multiTenancy.defaultCollectionNamespace,
-        )
+      ? this.getMongooseInstance('default')
       : this.mongoose;
 
     return mongooseInstance?.connection;
