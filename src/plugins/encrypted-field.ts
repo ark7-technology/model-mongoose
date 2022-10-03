@@ -64,9 +64,13 @@ export async function decryptValue(
 
 async function autoDecryptFields(
   doc: mongoose.Document,
-  encryption: ClientEncryption,
   decryptFields: NamedEncryptedField[],
 ) {
+  const encryption = mongooseManager.getClientEncryption();
+  if (encryption == null) {
+    return;
+  }
+
   await Promise.all(
     _.map(decryptFields, async (field) => {
       const encryptedValue = dotty.get(doc, field.name);
@@ -84,9 +88,13 @@ async function autoDecryptFields(
 
 async function autoEncryptFields(
   doc: any,
-  encryption: ClientEncryption,
   encryptFields: NamedEncryptedField[],
 ) {
+  const encryption = mongooseManager.getClientEncryption();
+  if (encryption == null) {
+    return;
+  }
+
   await Promise.all(
     _.map(encryptFields, async (field) => {
       const rawValue = dotty.get(doc, field.name);
@@ -112,8 +120,7 @@ export const encryptedField: MongooseOptionsPlugin = (
     return;
   }
 
-  const encryption = mongooseManager.getClientEncryption();
-  if (encryption == null) {
+  if (mongooseManager.options?.multiTenancy?.autoEncryption == null) {
     return;
   }
 
@@ -129,7 +136,7 @@ export const encryptedField: MongooseOptionsPlugin = (
       async function (this: mongoose.Document, next: () => void) {
         d('pre save: doc=%O', this);
 
-        await autoEncryptFields(this, encryption, encryptedFields);
+        await autoEncryptFields(this, encryptedFields);
 
         d('pre save result: doc=%O', this);
 
@@ -145,17 +152,12 @@ export const encryptedField: MongooseOptionsPlugin = (
         const modifiedFields = this.getUpdate();
 
         if ('$set' in modifiedFields) {
-          await autoEncryptFields(
-            modifiedFields['$set'],
-            encryption,
-            encryptedFields,
-          );
+          await autoEncryptFields(modifiedFields['$set'], encryptedFields);
         }
 
         if ('$setOnInsert' in modifiedFields) {
           await autoEncryptFields(
             modifiedFields['$setOnInsert'],
-            encryption,
             encryptedFields,
           );
         }
@@ -174,11 +176,7 @@ export const encryptedField: MongooseOptionsPlugin = (
         const modifiedFields = this.getUpdate();
 
         if ('$set' in modifiedFields) {
-          await autoEncryptFields(
-            modifiedFields['$set'],
-            encryption,
-            encryptedFields,
-          );
+          await autoEncryptFields(modifiedFields['$set'], encryptedFields);
         }
 
         d('pre updateOne result: query=%O', this);
@@ -199,7 +197,7 @@ export const encryptedField: MongooseOptionsPlugin = (
         async function (doc: mongoose.Document, next: () => void) {
           d('post save: doc=%O', doc);
 
-          await autoDecryptFields(doc, encryption, decryptFields);
+          await autoDecryptFields(doc, decryptFields);
 
           d('post save result: doc=%O', doc);
 
@@ -220,7 +218,7 @@ export const encryptedField: MongooseOptionsPlugin = (
           for (const doc of docs) {
             d('post find: doc=%O', doc);
 
-            await autoDecryptFields(doc, encryption, decryptFields);
+            await autoDecryptFields(doc, decryptFields);
 
             d('post find result: doc=%O', doc);
           }
@@ -234,7 +232,7 @@ export const encryptedField: MongooseOptionsPlugin = (
         async function (doc: mongoose.Document, next: () => void) {
           d('post findOneAndUpdate: query=%O', doc);
 
-          await autoDecryptFields(doc, encryption, decryptFields);
+          await autoDecryptFields(doc, decryptFields);
 
           d('post findOneAndUpdate result: query=%O', doc);
 

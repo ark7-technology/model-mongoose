@@ -6,4 +6,3 @@ export * from './mongoose-manager';
 export * from './mongoose-model';
 export * from './plugin';
 export * from './schemas';
-export * from './plugins';

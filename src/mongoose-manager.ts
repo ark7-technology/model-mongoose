@@ -32,6 +32,7 @@ import {
   encryptedField,
   decryptValue,
   encryptValue,
+  isEncrypted,
 } from './plugins/encrypted-field';
 import {
   ClientEncryption,
@@ -157,6 +158,13 @@ export class MongooseManager {
     }
 
     const mi = new Mongoose();
+
+    if (this.options.multiTenancy.onConnected) {
+      mi.connection.on('open', () =>
+        this.options.multiTenancy.onConnected(mi, tenancy),
+      );
+    }
+
     mi.connect(
       this.options.multiTenancy.uris,
       _.extend(
@@ -237,6 +245,10 @@ export class MongooseManager {
 
   encryptValue(fieldDef: EncryptedFieldOptions, rawValue: string) {
     return encryptValue(this.getClientEncryption(), fieldDef, rawValue);
+  }
+
+  isEncrypted(value: string) {
+    return isEncrypted(value);
   }
 
   discriminator<
@@ -751,6 +763,7 @@ export interface MongooseManagerOptionsMultiTenancy {
   autoEncryption?: ClientEncryptionOptions;
   onError?: (err: any, tenancy: string) => void;
   onMongooseInstanceCreated?: (mongoose: Mongoose, tenancy: string) => void;
+  onConnected?: (mongoose: Mongoose, tenancy: string) => void;
 }
 
 export interface MongooseManagerOptions {
