@@ -113,6 +113,30 @@ async function autoEncryptFields(
   );
 }
 
+// dotty can use a path array as input to access nested object (with dot in keys)
+// here we extend a "a.b.c" field to 3 possible access path: ["a.b.c"], ["a.b", "c"], ["a", "b", "c"] as partial update could happend
+// e.g., update with { 'profiles.identification': { number: '111-11-1111' }} or { 'profiles.identification.number': '111-11-1111' } are both supported
+export function extendEncryptedFields(encryptedFields: NamedEncryptedField[]) {
+  const extendedFields: NamedEncryptedField[] = [];
+
+  _.each(encryptedFields, (f) => {
+    if (f.name.indexOf('.') !== -1) {
+      const paths = (f.name as any as string).split('.');
+      for (let i = 1; i <= paths.length; i++) {
+        let newPath = [paths.slice(0, i).join('.')];
+        if (i < paths.length) {
+          newPath.push(...paths.slice(i, paths.length));
+        }
+        extendedFields.push({ name: newPath, fieldDef: f.fieldDef });
+      }
+    } else {
+      extendedFields.push(f);
+    }
+  });
+
+  return extendedFields;
+}
+
 export const encryptedField: MongooseOptionsPlugin = (
   options: MongooseOptions,
 ) => {
@@ -126,9 +150,10 @@ export const encryptedField: MongooseOptionsPlugin = (
 
   const metadata = A7Model.getMetadata(options.name);
 
-  const encryptedFields = metadata.encryptedFields();
+  let encryptedFields = metadata.encryptedFields();
 
   if (!_.isEmpty(encryptedFields)) {
+    encryptedFields = extendEncryptedFields(encryptedFields);
     d('Model %O, encryptedFields=%O', options.name, encryptedFields);
 
     options.mongooseSchema.pre(

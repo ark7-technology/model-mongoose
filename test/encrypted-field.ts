@@ -13,7 +13,10 @@ import {
 
 import { MongooseModel, mongooseManager } from '../src';
 import { ClientEncryptionDataKeyProvider } from 'mongodb-client-encryption';
-import { isEncrypted } from '../src/plugins/encrypted-field';
+import {
+  extendEncryptedFields,
+  isEncrypted,
+} from '../src/plugins/encrypted-field';
 
 export function getAutoEncryptionConfig() {
   const arr = [];
@@ -37,6 +40,9 @@ namespace models {
 
     @Encrypted({ autoDecrypt: true })
     autoDecryptField?: string;
+
+    @Encrypted({ autoDecrypt: false })
+    noAutoDecryptField?: string;
   }
 
   @A7Model({})
@@ -117,6 +123,15 @@ describe('encrypted-field', () => {
         name: 'nestedField.autoDecryptField',
         fieldDef: {
           autoDecrypt: true,
+          encrypted: true,
+          algorithm: 'AEAD_AES_256_CBC_HMAC_SHA_512-Deterministic',
+          keyAltName: 'defaultDataKey',
+        },
+      },
+      {
+        name: 'nestedField.noAutoDecryptField',
+        fieldDef: {
+          autoDecrypt: false,
           encrypted: true,
           algorithm: 'AEAD_AES_256_CBC_HMAC_SHA_512-Deterministic',
           keyAltName: 'defaultDataKey',
@@ -270,6 +285,31 @@ describe('encrypted-field', () => {
     });
 
     isEncrypted((data2 as any).ssn).should.be.true();
+
+    // $set nested data can be encrypted
+    const data3RawValue = {
+      nestedField: {
+        noAutoDecryptField: 'nested-no-auto-decrypted',
+      },
+      normalField: 'test-normal-field3',
+    };
+
+    const data3: any = await TestEncryptedField3.findOneAndUpdate(
+      {
+        normalField: 'test-normal-field3',
+      },
+      {
+        $set: {
+          'nestedField.noAutoDecryptField': 'nested-no-auto-decrypted',
+        },
+      },
+      { new: true, upsert: true },
+    );
+
+    _.omit(data3.toJSON(), '_id', 'nestedField').should.be.deepEqual(
+      _.omit(data3RawValue, 'nestedField'),
+    );
+    isEncrypted((data3 as any).nestedField.noAutoDecryptField).should.be.true();
   });
 
   it('should auto encrypt & decrypt fields on updateOne & updateMany', async () => {
@@ -340,5 +380,70 @@ describe('encrypted-field', () => {
     });
 
     isEncrypted((data2 as any).ssn).should.be.true();
+  });
+
+  it('should extend Encrypted Fields for partial update', async () => {
+    const encryptedFields = [
+      {
+        name: 'a.b.c.d',
+        fieldDef: {
+          keyAltName: 'anotherDataKey',
+          algorithm:
+            EncryptAlgorithm.AEAD_AES_256_CBC_HMAC_SHA_512_DETERMINISTIC,
+          encrypted: true,
+          autoDecrypt: false,
+        },
+      },
+    ];
+
+    const extededFields = _.map(
+      extendEncryptedFields(encryptedFields),
+      (e) => e.name,
+    );
+    extededFields.should.deepEqual([
+      ['a', 'b', 'c', 'd'],
+      ['a.b', 'c', 'd'],
+      ['a.b.c', 'd'],
+      ['a.b.c.d'],
+    ]);
+
+    const encryptedFields2 = [
+      {
+        name: 'a',
+        fieldDef: {
+          keyAltName: 'anotherDataKey',
+          algorithm:
+            EncryptAlgorithm.AEAD_AES_256_CBC_HMAC_SHA_512_DETERMINISTIC,
+          encrypted: true,
+          autoDecrypt: false,
+        },
+      },
+    ];
+
+    const extededFields2 = _.map(
+      extendEncryptedFields(encryptedFields2),
+      (e) => e.name,
+    );
+    extededFields2.should.deepEqual(['a']);
+
+    const encryptedFields3 = [
+      {
+        name: 'a.b',
+        fieldDef: {
+          keyAltName: 'anotherDataKey',
+          algorithm:
+            EncryptAlgorithm.AEAD_AES_256_CBC_HMAC_SHA_512_DETERMINISTIC,
+          encrypted: true,
+          autoDecrypt: false,
+        },
+      },
+    ];
+
+    const extededFields3 = _.map(
+      extendEncryptedFields(encryptedFields3),
+      (e) => e.name,
+    );
+
+    extededFields3.should.deepEqual([['a', 'b'], ['a.b']]);
   });
 });

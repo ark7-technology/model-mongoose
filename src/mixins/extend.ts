@@ -17,7 +17,7 @@ import { CircleDependencyError } from '../errors';
 const d = debug('ark7:model-mongoose:mixins:extend');
 
 export interface NamedEncryptedField {
-  name: string;
+  name: string | string[];
   fieldDef: EncryptedFieldOptions;
 }
 

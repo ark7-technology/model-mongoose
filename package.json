@@ -60,7 +60,7 @@
     "koa-router": "^10.0.0",
     "moment": "^2.29.1",
     "moment-timezone": "^0.5.31",
-    "object-path": "^0.11.5",
+    "object-path": "^0.11.8",
     "reflect-metadata": "^0.1.13",
     "underscore": "^1.11.0",
     "validator": "^13.1.17"
