@@ -257,7 +257,7 @@ describe('encrypted-field', () => {
           autoDecryptSSN: '444-44-4444',
         },
       },
-      { new: true },
+      { new: true, runValidators: true },
     );
 
     _.omit(data1.toJSON(), '_id', 'ssn').should.be.deepEqual(
@@ -276,7 +276,7 @@ describe('encrypted-field', () => {
           autoDecryptSSN: '666-66-6666',
         },
       },
-      { new: true, upsert: true },
+      { new: true, upsert: true, runValidators: true },
     );
 
     _.omit(data2.toJSON(), '_id', 'ssn').should.be.deepEqual({
@@ -303,7 +303,7 @@ describe('encrypted-field', () => {
           'nestedField.noAutoDecryptField': 'nested-no-auto-decrypted',
         },
       },
-      { new: true, upsert: true },
+      { new: true, upsert: true, runValidators: true },
     );
 
     _.omit(data3.toJSON(), '_id', 'nestedField').should.be.deepEqual(
