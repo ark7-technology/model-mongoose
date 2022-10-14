@@ -52,3 +52,16 @@ const preQueries = [
   'findOneAndRemove',
   'update',
 ];
+
+/**
+ * For some reason, QueryCursor cloned the option which carries the level info.
+ */
+const oldCursor = mongoose.Mongoose.prototype.Query.prototype.cursor;
+
+mongoose.Mongoose.prototype.Query.prototype.cursor = function cursor(
+  opts: any,
+) {
+  const c = oldCursor.call(this, opts);
+  delete c.options.level;
+  return c;
+};
