@@ -105,345 +105,345 @@ describe('encrypted-field', () => {
     mongooseManager.set('multiTenancy', null);
   });
 
-  // it('should calculate encrypted fields', async () => {
-  // const metadata = A7Model.getMetadata('TestEncryptedField3');
-  // const encryptedFields = metadata.encryptedFields();
+  it('should calculate encrypted fields', async () => {
+    const metadata = A7Model.getMetadata('TestEncryptedField3');
+    const encryptedFields = metadata.encryptedFields();
 
-  // encryptedFields.should.be.deepEqual([
-  // {
-  // name: 'encryptedFieldWithAnotherKey',
-  // fieldDef: {
-  // keyAltName: 'anotherDataKey',
-  // encrypted: true,
-  // algorithm: 'AEAD_AES_256_CBC_HMAC_SHA_512-Random',
-  // autoDecrypt: false,
-  // },
-  // },
-  // {
-  // name: 'nestedField.autoDecryptField',
-  // fieldDef: {
-  // autoDecrypt: true,
-  // encrypted: true,
-  // algorithm: 'AEAD_AES_256_CBC_HMAC_SHA_512-Deterministic',
-  // keyAltName: 'defaultDataKey',
-  // },
-  // },
-  // {
-  // name: 'nestedField.noAutoDecryptField',
-  // fieldDef: {
-  // autoDecrypt: false,
-  // encrypted: true,
-  // algorithm: 'AEAD_AES_256_CBC_HMAC_SHA_512-Deterministic',
-  // keyAltName: 'defaultDataKey',
-  // },
-  // },
-  // {
-  // name: 'autoDecryptSSN',
-  // fieldDef: {
-  // autoDecrypt: true,
-  // encrypted: true,
-  // algorithm: 'AEAD_AES_256_CBC_HMAC_SHA_512-Deterministic',
-  // keyAltName: 'defaultDataKey',
-  // },
-  // },
-  // {
-  // name: 'ssn',
-  // fieldDef: {
-  // autoDecrypt: false,
-  // encrypted: true,
-  // algorithm: 'AEAD_AES_256_CBC_HMAC_SHA_512-Deterministic',
-  // keyAltName: 'defaultDataKey',
-  // },
-  // },
-  // ]);
-  // });
+    encryptedFields.should.be.deepEqual([
+      {
+        name: 'encryptedFieldWithAnotherKey',
+        fieldDef: {
+          keyAltName: 'anotherDataKey',
+          encrypted: true,
+          algorithm: 'AEAD_AES_256_CBC_HMAC_SHA_512-Random',
+          autoDecrypt: false,
+        },
+      },
+      {
+        name: 'nestedField.autoDecryptField',
+        fieldDef: {
+          autoDecrypt: true,
+          encrypted: true,
+          algorithm: 'AEAD_AES_256_CBC_HMAC_SHA_512-Deterministic',
+          keyAltName: 'defaultDataKey',
+        },
+      },
+      {
+        name: 'nestedField.noAutoDecryptField',
+        fieldDef: {
+          autoDecrypt: false,
+          encrypted: true,
+          algorithm: 'AEAD_AES_256_CBC_HMAC_SHA_512-Deterministic',
+          keyAltName: 'defaultDataKey',
+        },
+      },
+      {
+        name: 'autoDecryptSSN',
+        fieldDef: {
+          autoDecrypt: true,
+          encrypted: true,
+          algorithm: 'AEAD_AES_256_CBC_HMAC_SHA_512-Deterministic',
+          keyAltName: 'defaultDataKey',
+        },
+      },
+      {
+        name: 'ssn',
+        fieldDef: {
+          autoDecrypt: false,
+          encrypted: true,
+          algorithm: 'AEAD_AES_256_CBC_HMAC_SHA_512-Deterministic',
+          keyAltName: 'defaultDataKey',
+        },
+      },
+    ]);
+  });
 
-  // it('should auto encrypt fields on create & save', async () => {
-  // const data1RawValue = {
-  // encryptedFieldWithAnotherKey: 'test-encrypted-field-with-another-key',
-  // nestedField: {
-  // otherField: 'test-other-field',
-  // autoDecryptField: 'test-auto-decrypt-field',
-  // },
-  // normalField: 'test-normal-field',
-  // };
+  it('should auto encrypt fields on create & save', async () => {
+    const data1RawValue = {
+      encryptedFieldWithAnotherKey: 'test-encrypted-field-with-another-key',
+      nestedField: {
+        otherField: 'test-other-field',
+        autoDecryptField: 'test-auto-decrypt-field',
+      },
+      normalField: 'test-normal-field',
+    };
 
-  // const data1: any = await TestEncryptedField3.create(data1RawValue);
+    const data1: any = await TestEncryptedField3.create(data1RawValue);
 
-  // // data1 encrypted fields should be encrypted excepts autoDecrypt fields (same as new query from db)
-  // _.omit(
-  // data1.toJSON(),
-  // '_id',
-  // 'encryptedFieldWithAnotherKey',
-  // ).should.be.deepEqual(
-  // _.omit(data1RawValue, 'encryptedFieldWithAnotherKey'),
-  // );
+    // data1 encrypted fields should be encrypted excepts autoDecrypt fields (same as new query from db)
+    _.omit(
+      data1.toJSON(),
+      '_id',
+      'encryptedFieldWithAnotherKey',
+    ).should.be.deepEqual(
+      _.omit(data1RawValue, 'encryptedFieldWithAnotherKey'),
+    );
 
-  // isEncrypted((data1 as any).encryptedFieldWithAnotherKey).should.be.true();
+    isEncrypted((data1 as any).encryptedFieldWithAnotherKey).should.be.true();
 
-  // // modify and save data1
-  // data1.normalField = 'updated-normal-field';
-  // await data1.save();
+    // modify and save data1
+    data1.normalField = 'updated-normal-field';
+    await data1.save();
 
-  // _.omit(
-  // data1.toJSON(),
-  // '_id',
-  // 'encryptedFieldWithAnotherKey',
-  // ).should.be.deepEqual(
-  // _.extend(_.omit(data1RawValue, 'encryptedFieldWithAnotherKey'), {
-  // normalField: 'updated-normal-field',
-  // }),
-  // );
+    _.omit(
+      data1.toJSON(),
+      '_id',
+      'encryptedFieldWithAnotherKey',
+    ).should.be.deepEqual(
+      _.extend(_.omit(data1RawValue, 'encryptedFieldWithAnotherKey'), {
+        normalField: 'updated-normal-field',
+      }),
+    );
 
-  // isEncrypted((data1 as any).encryptedFieldWithAnotherKey).should.be.true();
-  // });
+    isEncrypted((data1 as any).encryptedFieldWithAnotherKey).should.be.true();
+  });
 
-  // it('should auto decrypt fields on find & findOne', async () => {
-  // await TestEncryptedField3.deleteMany({});
+  it('should auto decrypt fields on find & findOne', async () => {
+    await TestEncryptedField3.deleteMany({});
 
-  // const data1RawValue = {
-  // nestedField: {
-  // otherField: 'test-other-field',
-  // },
-  // normalField: 'test-normal-field',
-  // ssn: '111-11-1111',
-  // autoDecryptSSN: '222-22-2222',
-  // };
+    const data1RawValue = {
+      nestedField: {
+        otherField: 'test-other-field',
+      },
+      normalField: 'test-normal-field',
+      ssn: '111-11-1111',
+      autoDecryptSSN: '222-22-2222',
+    };
 
-  // const data1: any = await TestEncryptedField3.create(data1RawValue);
+    const data1: any = await TestEncryptedField3.create(data1RawValue);
 
-  // _.omit(data1.toJSON(), '_id', 'ssn').should.be.deepEqual(
-  // _.omit(data1RawValue, 'ssn'),
-  // );
+    _.omit(data1.toJSON(), '_id', 'ssn').should.be.deepEqual(
+      _.omit(data1RawValue, 'ssn'),
+    );
 
-  // isEncrypted((data1 as any).ssn).should.be.true();
+    isEncrypted((data1 as any).ssn).should.be.true();
 
-  // const result = await TestEncryptedField3.find({
-  // normalField: 'test-normal-field',
-  // });
+    const result = await TestEncryptedField3.find({
+      normalField: 'test-normal-field',
+    });
 
-  // result.length.should.be.equal(1);
-  // result[0].toJSON().should.be.deepEqual(data1.toJSON());
+    result.length.should.be.equal(1);
+    result[0].toJSON().should.be.deepEqual(data1.toJSON());
 
-  // const result2 = await TestEncryptedField3.findOne({
-  // normalField: 'test-normal-field',
-  // });
+    const result2 = await TestEncryptedField3.findOne({
+      normalField: 'test-normal-field',
+    });
 
-  // result2.toJSON().should.be.deepEqual(data1.toJSON());
-  // });
+    result2.toJSON().should.be.deepEqual(data1.toJSON());
+  });
 
-  // it('should auto encrypt & decrypt fields on findOneAndUpdate', async () => {
-  // await TestEncryptedField3.deleteMany({});
+  it('should auto encrypt & decrypt fields on findOneAndUpdate', async () => {
+    await TestEncryptedField3.deleteMany({});
 
-  // const data1RawValue = {
-  // nestedField: {
-  // otherField: 'test-other-field',
-  // },
-  // normalField: 'test-normal-field',
-  // ssn: '111-11-1111',
-  // autoDecryptSSN: '222-22-2222',
-  // };
+    const data1RawValue = {
+      nestedField: {
+        otherField: 'test-other-field',
+      },
+      normalField: 'test-normal-field',
+      ssn: '111-11-1111',
+      autoDecryptSSN: '222-22-2222',
+    };
 
-  // await TestEncryptedField3.create(data1RawValue);
+    await TestEncryptedField3.create(data1RawValue);
 
-  // // $set data can be encrypted
-  // const data1: any = await TestEncryptedField3.findOneAndUpdate(
-  // {
-  // normalField: 'test-normal-field',
-  // },
-  // {
-  // $set: {
-  // ssn: '333-33-3333',
-  // autoDecryptSSN: '444-44-4444',
-  // },
-  // },
-  // { new: true, runValidators: true },
-  // );
+    // $set data can be encrypted
+    const data1: any = await TestEncryptedField3.findOneAndUpdate(
+      {
+        normalField: 'test-normal-field',
+      },
+      {
+        $set: {
+          ssn: '333-33-3333',
+          autoDecryptSSN: '444-44-4444',
+        },
+      },
+      { new: true, runValidators: true },
+    );
 
-  // _.omit(data1.toJSON(), '_id', 'ssn').should.be.deepEqual(
-  // _.extend(_.omit(data1RawValue, 'ssn'), { autoDecryptSSN: '444-44-4444' }),
-  // );
-  // isEncrypted((data1 as any).ssn).should.be.true();
+    _.omit(data1.toJSON(), '_id', 'ssn').should.be.deepEqual(
+      _.extend(_.omit(data1RawValue, 'ssn'), { autoDecryptSSN: '444-44-4444' }),
+    );
+    isEncrypted((data1 as any).ssn).should.be.true();
 
-  // // $setOnInsert data can be encrypted
-  // const data2: any = await TestEncryptedField3.findOneAndUpdate(
-  // {
-  // normalField: 'test-normal-field2',
-  // },
-  // {
-  // $setOnInsert: {
-  // ssn: '555-55-5555',
-  // autoDecryptSSN: '666-66-6666',
-  // },
-  // },
-  // { new: true, upsert: true, runValidators: true },
-  // );
+    // $setOnInsert data can be encrypted
+    const data2: any = await TestEncryptedField3.findOneAndUpdate(
+      {
+        normalField: 'test-normal-field2',
+      },
+      {
+        $setOnInsert: {
+          ssn: '555-55-5555',
+          autoDecryptSSN: '666-66-6666',
+        },
+      },
+      { new: true, upsert: true, runValidators: true },
+    );
 
-  // _.omit(data2.toJSON(), '_id', 'ssn').should.be.deepEqual({
-  // normalField: 'test-normal-field2',
-  // autoDecryptSSN: '666-66-6666',
-  // });
+    _.omit(data2.toJSON(), '_id', 'ssn').should.be.deepEqual({
+      normalField: 'test-normal-field2',
+      autoDecryptSSN: '666-66-6666',
+    });
 
-  // isEncrypted((data2 as any).ssn).should.be.true();
+    isEncrypted((data2 as any).ssn).should.be.true();
 
-  // // $set nested data can be encrypted
-  // const data3RawValue = {
-  // nestedField: {
-  // noAutoDecryptField: 'nested-no-auto-decrypted',
-  // },
-  // normalField: 'test-normal-field3',
-  // };
+    // $set nested data can be encrypted
+    const data3RawValue = {
+      nestedField: {
+        noAutoDecryptField: 'nested-no-auto-decrypted',
+      },
+      normalField: 'test-normal-field3',
+    };
 
-  // const data3: any = await TestEncryptedField3.findOneAndUpdate(
-  // {
-  // normalField: 'test-normal-field3',
-  // },
-  // {
-  // $set: {
-  // 'nestedField.noAutoDecryptField': 'nested-no-auto-decrypted',
-  // },
-  // },
-  // { new: true, upsert: true, runValidators: true },
-  // );
+    const data3: any = await TestEncryptedField3.findOneAndUpdate(
+      {
+        normalField: 'test-normal-field3',
+      },
+      {
+        $set: {
+          'nestedField.noAutoDecryptField': 'nested-no-auto-decrypted',
+        },
+      },
+      { new: true, upsert: true, runValidators: true },
+    );
 
-  // _.omit(data3.toJSON(), '_id', 'nestedField').should.be.deepEqual(
-  // _.omit(data3RawValue, 'nestedField'),
-  // );
-  // isEncrypted((data3 as any).nestedField.noAutoDecryptField).should.be.true();
-  // });
+    _.omit(data3.toJSON(), '_id', 'nestedField').should.be.deepEqual(
+      _.omit(data3RawValue, 'nestedField'),
+    );
+    isEncrypted((data3 as any).nestedField.noAutoDecryptField).should.be.true();
+  });
 
-  // it('should auto encrypt & decrypt fields on updateOne & updateMany', async () => {
-  // await TestEncryptedField3.deleteMany({});
+  it('should auto encrypt & decrypt fields on updateOne & updateMany', async () => {
+    await TestEncryptedField3.deleteMany({});
 
-  // const data1RawValue = {
-  // nestedField: {
-  // otherField: 'test-other-field',
-  // },
-  // normalField: 'test-normal-field',
-  // ssn: '111-11-1111',
-  // autoDecryptSSN: '222-22-2222',
-  // };
+    const data1RawValue = {
+      nestedField: {
+        otherField: 'test-other-field',
+      },
+      normalField: 'test-normal-field',
+      ssn: '111-11-1111',
+      autoDecryptSSN: '222-22-2222',
+    };
 
-  // await TestEncryptedField3.create(data1RawValue);
+    await TestEncryptedField3.create(data1RawValue);
 
-  // // $set data can be encrypted
-  // const result1: any = await TestEncryptedField3.updateOne(
-  // {
-  // normalField: 'test-normal-field',
-  // },
-  // {
-  // $set: {
-  // ssn: '333-33-3333',
-  // autoDecryptSSN: '444-44-4444',
-  // },
-  // },
-  // {},
-  // );
+    // $set data can be encrypted
+    const result1: any = await TestEncryptedField3.updateOne(
+      {
+        normalField: 'test-normal-field',
+      },
+      {
+        $set: {
+          ssn: '333-33-3333',
+          autoDecryptSSN: '444-44-4444',
+        },
+      },
+      {},
+    );
 
-  // result1.modifiedCount.should.be.equal(1);
+    result1.modifiedCount.should.be.equal(1);
 
-  // const data1 = await TestEncryptedField3.findOne({
-  // normalField: 'test-normal-field',
-  // });
+    const data1 = await TestEncryptedField3.findOne({
+      normalField: 'test-normal-field',
+    });
 
-  // _.omit(data1.toJSON(), '_id', 'ssn').should.be.deepEqual(
-  // _.extend(_.omit(data1RawValue, 'ssn'), { autoDecryptSSN: '444-44-4444' }),
-  // );
-  // isEncrypted((data1 as any).ssn).should.be.true();
+    _.omit(data1.toJSON(), '_id', 'ssn').should.be.deepEqual(
+      _.extend(_.omit(data1RawValue, 'ssn'), { autoDecryptSSN: '444-44-4444' }),
+    );
+    isEncrypted((data1 as any).ssn).should.be.true();
 
-  // // updateMany data can be encrypted
-  // const result2: any = await TestEncryptedField3.updateMany(
-  // {
-  // normalField: 'test-normal-field',
-  // },
-  // {
-  // $set: {
-  // ssn: '555-55-5555',
-  // autoDecryptSSN: '666-66-6666',
-  // },
-  // },
-  // {},
-  // );
+    // updateMany data can be encrypted
+    const result2: any = await TestEncryptedField3.updateMany(
+      {
+        normalField: 'test-normal-field',
+      },
+      {
+        $set: {
+          ssn: '555-55-5555',
+          autoDecryptSSN: '666-66-6666',
+        },
+      },
+      {},
+    );
 
-  // result2.modifiedCount.should.be.equal(1);
+    result2.modifiedCount.should.be.equal(1);
 
-  // const data2 = await TestEncryptedField3.findOne({
-  // normalField: 'test-normal-field',
-  // });
+    const data2 = await TestEncryptedField3.findOne({
+      normalField: 'test-normal-field',
+    });
 
-  // _.omit(data2.toJSON(), '_id', 'ssn').should.be.deepEqual({
-  // nestedField: {
-  // otherField: 'test-other-field',
-  // },
-  // normalField: 'test-normal-field',
-  // autoDecryptSSN: '666-66-6666',
-  // });
+    _.omit(data2.toJSON(), '_id', 'ssn').should.be.deepEqual({
+      nestedField: {
+        otherField: 'test-other-field',
+      },
+      normalField: 'test-normal-field',
+      autoDecryptSSN: '666-66-6666',
+    });
 
-  // isEncrypted((data2 as any).ssn).should.be.true();
-  // });
+    isEncrypted((data2 as any).ssn).should.be.true();
+  });
 
-  // it('should extend Encrypted Fields for partial update', async () => {
-  // const encryptedFields = [
-  // {
-  // name: 'a.b.c.d',
-  // fieldDef: {
-  // keyAltName: 'anotherDataKey',
-  // algorithm:
-  // EncryptAlgorithm.AEAD_AES_256_CBC_HMAC_SHA_512_DETERMINISTIC,
-  // encrypted: true,
-  // autoDecrypt: false,
-  // },
-  // },
-  // ];
+  it('should extend Encrypted Fields for partial update', async () => {
+    const encryptedFields = [
+      {
+        name: 'a.b.c.d',
+        fieldDef: {
+          keyAltName: 'anotherDataKey',
+          algorithm:
+            EncryptAlgorithm.AEAD_AES_256_CBC_HMAC_SHA_512_DETERMINISTIC,
+          encrypted: true,
+          autoDecrypt: false,
+        },
+      },
+    ];
 
-  // const extededFields = _.map(
-  // extendEncryptedFields(encryptedFields),
-  // (e) => e.name,
-  // );
-  // extededFields.should.deepEqual([
-  // ['a', 'b', 'c', 'd'],
-  // ['a.b', 'c', 'd'],
-  // ['a.b.c', 'd'],
-  // ['a.b.c.d'],
-  // ]);
+    const extededFields = _.map(
+      extendEncryptedFields(encryptedFields),
+      (e) => e.name,
+    );
+    extededFields.should.deepEqual([
+      ['a', 'b', 'c', 'd'],
+      ['a.b', 'c', 'd'],
+      ['a.b.c', 'd'],
+      ['a.b.c.d'],
+    ]);
 
-  // const encryptedFields2 = [
-  // {
-  // name: 'a',
-  // fieldDef: {
-  // keyAltName: 'anotherDataKey',
-  // algorithm:
-  // EncryptAlgorithm.AEAD_AES_256_CBC_HMAC_SHA_512_DETERMINISTIC,
-  // encrypted: true,
-  // autoDecrypt: false,
-  // },
-  // },
-  // ];
+    const encryptedFields2 = [
+      {
+        name: 'a',
+        fieldDef: {
+          keyAltName: 'anotherDataKey',
+          algorithm:
+            EncryptAlgorithm.AEAD_AES_256_CBC_HMAC_SHA_512_DETERMINISTIC,
+          encrypted: true,
+          autoDecrypt: false,
+        },
+      },
+    ];
 
-  // const extededFields2 = _.map(
-  // extendEncryptedFields(encryptedFields2),
-  // (e) => e.name,
-  // );
-  // extededFields2.should.deepEqual(['a']);
+    const extededFields2 = _.map(
+      extendEncryptedFields(encryptedFields2),
+      (e) => e.name,
+    );
+    extededFields2.should.deepEqual(['a']);
 
-  // const encryptedFields3 = [
-  // {
-  // name: 'a.b',
-  // fieldDef: {
-  // keyAltName: 'anotherDataKey',
-  // algorithm:
-  // EncryptAlgorithm.AEAD_AES_256_CBC_HMAC_SHA_512_DETERMINISTIC,
-  // encrypted: true,
-  // autoDecrypt: false,
-  // },
-  // },
-  // ];
+    const encryptedFields3 = [
+      {
+        name: 'a.b',
+        fieldDef: {
+          keyAltName: 'anotherDataKey',
+          algorithm:
+            EncryptAlgorithm.AEAD_AES_256_CBC_HMAC_SHA_512_DETERMINISTIC,
+          encrypted: true,
+          autoDecrypt: false,
+        },
+      },
+    ];
 
-  // const extededFields3 = _.map(
-  // extendEncryptedFields(encryptedFields3),
-  // (e) => e.name,
-  // );
+    const extededFields3 = _.map(
+      extendEncryptedFields(encryptedFields3),
+      (e) => e.name,
+    );
 
-  // extededFields3.should.deepEqual([['a', 'b'], ['a.b']]);
-  // });
+    extededFields3.should.deepEqual([['a', 'b'], ['a.b']]);
+  });
 });
