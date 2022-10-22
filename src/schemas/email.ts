@@ -1,4 +1,5 @@
 import * as mongoose from 'mongoose';
+import { isEncrypted } from '../plugins/encrypted-field';
 import _ from 'underscore';
 
 import { BaseSchemaType } from './base-schema-type';
@@ -11,10 +12,7 @@ export class Email extends BaseSchemaType {
   }
 
   validateEmail(val: string) {
-    return (
-      val == null ||
-      /^[a-zA-Z0-9._+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,16}$/.test(val)
-    );
+    return val == null || /^[a-zA-Z0-9._+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,16}$/.test(val) || isEncrypted(val);
   }
 
   cast(val: any, options: any) {
@@ -24,21 +22,11 @@ export class Email extends BaseSchemaType {
     }
 
     if (val.constructor !== String) {
-      throw new (mongoose.SchemaType as any).CastError(
-        'Email',
-        val,
-        this.$fullPath,
-        `${val} is not a string`,
-      );
+      throw new (mongoose.SchemaType as any).CastError('Email', val, this.$fullPath, `${val} is not a string`);
     }
 
     if (val != null && !this.validateEmail(val as string)) {
-      throw new (mongoose.SchemaType as any).CastError(
-        'Email',
-        val,
-        this.$fullPath,
-        `${val} is not a string`,
-      );
+      throw new (mongoose.SchemaType as any).CastError('Email', val, this.$fullPath, `${val} is not a string`);
     }
 
     return val;
