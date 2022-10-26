@@ -47,6 +47,18 @@ describe('plugin', () => {
       ins.lastUpdateTime
         .getTime()
         .should.not.be.equal(ins2.lastUpdateTime.getTime());
+
+      // find old item without createdAt in projection and then save, should not changed the createdAt field
+      for await (const item of Model.find(
+        { _id: ins._id },
+        { val: 1 },
+        {},
+      ).cursor()) {
+        await item.save();
+
+        const ins2: Model = await Model.findById(ins._id);
+        ins2.createdAt.getTime().should.be.equal(ins.createdAt.getTime());
+      }
     });
   });
 });

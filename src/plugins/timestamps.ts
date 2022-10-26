@@ -7,7 +7,7 @@ export function createdAtPlugin(
   fieldName: string = 'createdAt',
 ): MongooseOptionsPlugin {
   function setCreatedAtTimeOnSave(next: () => void) {
-    if (this[fieldName] == null) {
+    if (this.isNew && this[fieldName] == null) {
       this[fieldName] = Date.now();
     }
     next();
