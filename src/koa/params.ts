@@ -6,6 +6,7 @@ import { withInheritedProps as dotty } from 'object-path';
 
 import * as validators from './validators';
 import { Validator } from './declarations';
+import { split } from './overrides';
 
 export interface ParamError {
   path: string | number;
@@ -68,7 +69,7 @@ export function processValidators(
     const key = o.key.startsWith('~') ? o.key.substring(1) : o.key;
 
     for (const fn of o.validators) {
-      const value = dotty.get(newTarget, key);
+      const value = dotty.get(newTarget, split(key));
       const pass = fn(newTarget, key, value, root);
       if (pass === false || _.isString(pass)) {
         errors.push({

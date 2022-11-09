@@ -159,7 +159,7 @@ function setValue(target: any, keys: string[], value: any) {
   dotty.set(target, keys, value);
 }
 
-function split(str: string): string[] {
+export function split(str: string): string[] {
   const parts = str.split('.');
   for (let i = parts.length - 1; i >= 1; i--) {
     if (parts[i - 1].endsWith('\\')) {
