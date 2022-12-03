@@ -34,6 +34,7 @@ export namespace metadata {
             type: 'method',
           },
         ],
+        fileName: 'test/models/names.ts',
       },
     },
     fields: {

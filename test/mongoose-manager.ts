@@ -47,13 +47,13 @@ describe('mongoose-manager', () => {
 
       mongooseOptions.methods.should.be.deepEqual([
         {
-          name: 'greeting',
-          fn: Object.getOwnPropertyDescriptor(Name.prototype, 'greeting').value,
-        },
-        {
           name: 'toJSON',
           fn: Object.getOwnPropertyDescriptor(StrictModel.prototype, 'toJSON')
             .value,
+        },
+        {
+          name: 'greeting',
+          fn: Object.getOwnPropertyDescriptor(Name.prototype, 'greeting').value,
         },
       ]);
 

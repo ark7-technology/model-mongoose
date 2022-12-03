@@ -36,6 +36,7 @@ describe('enums', () => {
               },
             },
           ],
+          fileName: 'test/enums.ts',
         },
       },
     });

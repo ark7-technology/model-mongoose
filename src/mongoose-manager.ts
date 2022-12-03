@@ -14,6 +14,10 @@ import {
   runtime,
   setIsIDFn,
 } from '@ark7/model';
+import {
+  ClientEncryption,
+  ClientEncryptionOptions,
+} from 'mongodb-client-encryption';
 import { ConnectOptions, IndexDefinition, Mongoose, Types } from 'mongoose';
 import { IndexOptions } from 'mongoose';
 import { MongoError } from 'mongodb';
@@ -29,15 +33,11 @@ import {
 } from './plugin';
 import { dataLevelProjection } from './plugins/data-level';
 import {
-  encryptedField,
   decryptValue,
   encryptValue,
+  encryptedField,
   isEncrypted,
 } from './plugins/encrypted-field';
-import {
-  ClientEncryption,
-  ClientEncryptionOptions,
-} from 'mongodb-client-encryption';
 
 declare module '@ark7/model/core/model' {
   interface ID extends Types.ObjectId {}
@@ -614,7 +614,7 @@ export class MongooseManager {
       return this.mongooseOptionsMap.get(key);
     }
 
-    const metadata = A7Model.getMetadata(model);
+    const metadata = A7Model.getMetadata(model, { forceFields: true });
 
     const mongooseOptions = new MongooseOptions(
       name,
