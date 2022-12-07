@@ -897,7 +897,12 @@ export class MongooseOptions {
     this.mongooseSchema.set('id', false);
 
     try {
-      this.mongooseSchema.add(this.schema);
+      this.mongooseSchema.add(
+        _.omit(
+          this.schema,
+          _.filter(_.keys(this.schema), (k) => this.schema[k].type == null),
+        ),
+      );
       this.mongooseSchema.eachPath((_path, type: any) => {
         const modelName: string =
           type.schema?.$$modelName ?? type.schemaOptions?.type?.$$modelName;
