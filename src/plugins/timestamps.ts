@@ -1,5 +1,5 @@
 import * as mongoose from 'mongoose';
-
+import _ from 'underscore';
 import { MongooseOptions } from '../mongoose-manager';
 import { MongooseOptionsPlugin } from '../plugin';
 
@@ -27,6 +27,21 @@ export function createdAtPlugin(
     next();
   }
 
+  function setCreatedAtTimeOnInsertMany(
+    next: () => void,
+    docs: mongoose.Document[],
+  ) {
+    if (_.isArray(docs) && !_.isEmpty(docs)) {
+      _.each(docs, (doc: any) => {
+        if (doc[fieldName] == null) {
+          doc[fieldName] = Date.now();
+        }
+      });
+    }
+
+    next();
+  }
+
   return (options: MongooseOptions) => {
     (options.mongooseSchema as mongoose.Schema).pre(
       'save',
@@ -35,6 +50,10 @@ export function createdAtPlugin(
     (options.mongooseSchema as mongoose.Schema).pre(
       'findOneAndUpdate',
       setCreatedAtTimeOnUpdate,
+    );
+    (options.mongooseSchema as mongoose.Schema).pre(
+      'insertMany',
+      setCreatedAtTimeOnInsertMany,
     );
   };
 }
@@ -59,6 +78,21 @@ export function lastUpdateTimePlugin(
     next();
   }
 
+  function setLastUpdateTimeOnInsertMany(
+    next: () => void,
+    docs: mongoose.Document[],
+  ) {
+    if (_.isArray(docs) && !_.isEmpty(docs)) {
+      _.each(docs, (doc: any) => {
+        if (doc[fieldName] == null) {
+          doc[fieldName] = Date.now();
+        }
+      });
+    }
+
+    next();
+  }
+
   return (options: MongooseOptions) => {
     (options.mongooseSchema as mongoose.Schema).pre(
       'save',
@@ -67,6 +101,10 @@ export function lastUpdateTimePlugin(
     (options.mongooseSchema as mongoose.Schema).pre(
       'findOneAndUpdate',
       setLastUpdateTimeOnUpdate,
+    );
+    (options.mongooseSchema as mongoose.Schema).pre(
+      'insertMany',
+      setLastUpdateTimeOnInsertMany,
     );
   };
 }

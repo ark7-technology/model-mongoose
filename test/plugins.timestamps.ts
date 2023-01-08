@@ -59,6 +59,16 @@ describe('plugin', () => {
         const ins2: Model = await Model.findById(ins._id);
         ins2.createdAt.getTime().should.be.equal(ins.createdAt.getTime());
       }
+
+      // insertMany should works
+      const result = await Model.insertMany([{ val: 'a' }, { val: 'b' }], {
+        ordered: true,
+      });
+
+      result[0].createdAt.should.be.not.be.null();
+      result[0].lastUpdateTime.should.be.not.be.null();
+      result[1].createdAt.should.be.not.be.null();
+      result[1].lastUpdateTime.should.be.not.be.null();
     });
   });
 });
