@@ -1,15 +1,16 @@
+import * as mongoose from 'mongoose';
 import _ from 'underscore';
 
 import { MongooseOptions } from './mongoose-manager';
 
 export interface MongooseOptionsPluginSuitable {
-  (options: MongooseOptions): boolean;
+  (options: MongooseOptions | mongoose.Model<any>): boolean;
 
   and(suitable: MongooseOptionsPluginSuitable): MongooseOptionsPluginSuitable;
 }
 
 export interface MongooseOptionsPlugin {
-  (options: MongooseOptions): void;
+  (options: MongooseOptions | mongoose.Model<any>): void;
 }
 
 export interface MongooseOptionsPluginOptions {
@@ -19,6 +20,7 @@ export interface MongooseOptionsPluginOptions {
 
 export enum MongoosePluginPeriod {
   BEFORE_REGISTER = 'before-register',
+  AFTER_REGISTER = 'after-register',
 }
 
 export function createPluginSuitable(

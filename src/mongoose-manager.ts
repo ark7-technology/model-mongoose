@@ -189,7 +189,10 @@ export class MongooseManager {
     return mi;
   }
 
-  runPlugin(period: MongoosePluginPeriod, options: MongooseOptions) {
+  runPlugin(
+    period: MongoosePluginPeriod,
+    options: MongooseOptions | mongoose.Model<any>,
+  ) {
     const plugins: MongooseOptionsPluginOptions[] =
       this.plugins.get(period) || [];
 
@@ -375,6 +378,8 @@ export class MongooseManager {
 
         model.mongooseManager = this;
         tenantMap[tenancy] = model;
+
+        this.runPlugin(MongoosePluginPeriod.AFTER_REGISTER, model);
       }
 
       return this.createProxy(tenantMap);
@@ -602,6 +607,8 @@ export class MongooseManager {
     });
 
     model.mongooseManager = this;
+
+    this.runPlugin(MongoosePluginPeriod.AFTER_REGISTER, model);
 
     return model;
   }
