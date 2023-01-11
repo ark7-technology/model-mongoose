@@ -28,6 +28,14 @@ declare module 'koa' {
   }
 }
 
+export interface A7Update {
+  /**
+   * Called by KOA create and update middlewares, after the model instance being
+   * updated.
+   */
+  $onUpdate(): void | Promise<void>;
+}
+
 export interface IOverrides {
   query?: {
     [name: string]: any;
