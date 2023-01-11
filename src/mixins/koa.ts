@@ -143,6 +143,14 @@ export class MongooseKoa extends MongooseModel {
         );
       }
 
+      const postMethods = options.postMethods ?? ['$onUpdate'];
+
+      for (const method of postMethods) {
+        if (_.isFunction(object[method])) {
+          await object[method]();
+        }
+      }
+
       if (!opts.noBody) {
         ctx.body = await opts.transform(
           object.toJSON(_.pick(opts, 'level')),
@@ -618,6 +626,14 @@ export class MongooseKoa extends MongooseModel {
 
       dotty.set(ctx, opts.target, object);
 
+      const postMethods = options.postMethods ?? ['$onUpdate'];
+
+      for (const method of postMethods) {
+        if (_.isFunction(object[method])) {
+          await object[method]();
+        }
+      }
+
       if (opts.triggerNext) {
         await next();
       }
@@ -770,6 +786,13 @@ export interface CommonReadOptions {
 
 export interface CommonWriteOptions {
   omits?: string[]; // omits fields to be modified
+
+  /**
+   * After instance being updated, call the methods under the instance.
+   *
+   * Default is ['$onUpdate'].
+   */
+  postMethods?: string[];
 }
 
 export interface CreateOptions
