@@ -1274,7 +1274,7 @@ function cloneMongooseSchemaDisableIndex(
 
     if (type.schema != null) {
       cloneMongooseSchemaDisableIndex({
-        schema: type.schame,
+        schema: type.schema,
       });
     }
   });
