@@ -1144,6 +1144,9 @@ export class MongooseOptions {
         }
       }
 
+      if (field.field?.indexDisabled) {
+        target.type = cloneMongooseSchemaDisableIndex(target.type);
+      }
       options.schema[field.name] = target;
     });
 
@@ -1255,3 +1258,18 @@ export class NativeError extends global.Error {}
 export const lazyFns: string[] = [];
 
 export const shareFns = ['on'];
+
+function cloneMongooseSchemaDisableIndex(schema: any): any {
+  const c = schema.clone();
+
+  c._indexes = [];
+
+  c.eachPath((path: string, type: any) => {
+    console.log('path', path, type);
+    type._index = null;
+  });
+
+  console.log('type', c);
+
+  return c;
+}

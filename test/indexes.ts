@@ -25,6 +25,12 @@ namespace models {
     field2: string;
     field3: string;
   }
+
+  @A7Model({})
+  export class DisabledIndexModel extends Model {
+    @Index({ indexDisabled: true })
+    field1: SingleFieldIndex;
+  }
 }
 
 const SingleFieldIndex = mongooseManager.register(models.SingleFieldIndex);
@@ -32,6 +38,9 @@ type SingleFieldIndex = models.SingleFieldIndex;
 
 const CompoundIndexModel = mongooseManager.register(models.CompoundIndexModel);
 type CompoundIndexModel = models.CompoundIndexModel;
+
+const DisabledIndexModel = mongooseManager.register(models.DisabledIndexModel);
+type DisabledIndexModel = models.DisabledIndexModel;
 
 describe('indexes', () => {
   before(async () => {
@@ -110,6 +119,26 @@ describe('indexes', () => {
         field2: 'f2',
         field3: 'f3',
       }).should.rejectedWith(/E11000.*/);
+    });
+  });
+
+  describe('disabled indexes', () => {
+    it('allows to create same value for originally unique keys', async () => {
+      await DisabledIndexModel.create({
+        field1: {
+          field1: 'f1',
+          field2: 'f2',
+          field3: 'f3',
+        },
+      });
+
+      await DisabledIndexModel.create({
+        field1: {
+          field1: 'f1',
+          field2: 'f2',
+          field3: 'f3',
+        },
+      });
     });
   });
 });
