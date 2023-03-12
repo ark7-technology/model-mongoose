@@ -1,14 +1,24 @@
 import 'should';
 
 import * as mongoose from 'mongoose';
-import { A7Model, ID, Model } from '@ark7/model';
+import { A7Model, ID, IDType, Model } from '@ark7/model';
 
 import { mongooseManager } from '../src';
 
 namespace models {
   @A7Model({})
+  export class ID2Model extends Model {
+    barID?: ID;
+
+    normal: string;
+  }
+
+  @A7Model({})
   export class IDModel extends Model {
     fooID?: ID;
+
+    @IDType({ forceIdToString: true })
+    bar: ID2Model;
   }
 }
 
@@ -31,5 +41,8 @@ describe('ID', () => {
         required: false,
         type: mongoose.SchemaTypes.ObjectId,
       });
+    mongooseManager
+      .getMongooseOptions(models.IDModel)
+      .schema.bar.type.paths.barID.instance.should.be.equal('String');
   });
 });

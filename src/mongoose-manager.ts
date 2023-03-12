@@ -1150,10 +1150,12 @@ export class MongooseOptions {
         }
       }
 
-      if (field.field?.indexDisabled) {
+      if (field.field?.indexDisabled || field.field?.forceIdToString) {
         target.type = cloneMongooseSchemaDisableIndex({
           schema: target.type,
           clone: true,
+          disableIndex: field.field.indexDisabled,
+          forceIdToString: field.field.forceIdToString,
         });
       }
       options.schema[field.name] = target;
@@ -1273,17 +1275,55 @@ function cloneMongooseSchemaDisableIndex(
 ): any {
   const c = options.clone ? options.schema.clone() : options.schema;
 
-  c._indexes = [];
+  if (options.disableIndex) {
+    c._indexes = [];
+  }
+
+  const forceIdPaths: { path: string; options: any }[] = [];
 
   c.eachPath((_path: string, type: any) => {
-    type._index = null;
+    if (options.disableIndex) {
+      type._index = null;
+    }
+
+    if (options.forceIdToString && type.instance === 'ObjectID') {
+      forceIdPaths.push({ path: type.path, options: type.options });
+    }
 
     if (type.schema != null) {
       cloneMongooseSchemaDisableIndex({
         schema: type.schema,
+        disableIndex: options.disableIndex,
+        forceIdToString: options.forceIdToString,
       });
     }
   });
+
+  if (options.forceIdToString) {
+    for (const p of forceIdPaths) {
+      c.remove(p.path);
+    }
+
+    const s = _.chain(forceIdPaths)
+      .map((p) => [
+        p.path,
+        _.extend(
+          {},
+          _.chain(p.options)
+            .pairs()
+            .filter(([_key, val]) => val !== undefined)
+            .object()
+            .value(),
+          {
+            type: 'String',
+          },
+        ),
+      ])
+      .object()
+      .value();
+
+    c.add(s);
+  }
 
   return c;
 }
@@ -1291,4 +1331,6 @@ function cloneMongooseSchemaDisableIndex(
 interface CloneMongooseSchemaDisableIndexOptions {
   schema: any;
   clone?: boolean;
+  disableIndex?: boolean;
+  forceIdToString?: boolean;
 }
