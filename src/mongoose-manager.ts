@@ -1264,12 +1264,9 @@ function cloneMongooseSchemaDisableIndex(schema: any): any {
 
   c._indexes = [];
 
-  c.eachPath((path: string, type: any) => {
-    console.log('path', path, type);
+  c.eachPath((_path: string, type: any) => {
     type._index = null;
   });
-
-  console.log('type', c);
 
   return c;
 }
