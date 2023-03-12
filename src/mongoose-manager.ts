@@ -1145,7 +1145,10 @@ export class MongooseOptions {
       }
 
       if (field.field?.indexDisabled) {
-        target.type = cloneMongooseSchemaDisableIndex(target.type);
+        target.type = cloneMongooseSchemaDisableIndex({
+          schema: target.type,
+          clone: true,
+        });
       }
       options.schema[field.name] = target;
     });
@@ -1259,14 +1262,27 @@ export const lazyFns: string[] = [];
 
 export const shareFns = ['on'];
 
-function cloneMongooseSchemaDisableIndex(schema: any): any {
-  const c = schema.clone();
+function cloneMongooseSchemaDisableIndex(
+  options: CloneMongooseSchemaDisableIndexOptions,
+): any {
+  const c = options.clone ? options.schema.clone() : options.schema;
 
   c._indexes = [];
 
   c.eachPath((_path: string, type: any) => {
     type._index = null;
+
+    if (type.schema != null) {
+      cloneMongooseSchemaDisableIndex({
+        schema: type.schame,
+      });
+    }
   });
 
   return c;
+}
+
+interface CloneMongooseSchemaDisableIndexOptions {
+  schema: any;
+  clone?: boolean;
 }
