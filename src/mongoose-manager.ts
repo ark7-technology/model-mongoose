@@ -75,6 +75,8 @@ export type TenantMap = {
 export class MongooseManager {
   options: MongooseManagerOptions = {};
 
+  public models: Map<string, mongoose.Model<any>> = new Map();
+
   private mongoose: Mongoose;
   private mongooseOptionsMap: Map<string, MongooseOptions> = new Map();
   private mongooseInstanceMap: Map<string, Mongoose> = new Map();
@@ -387,6 +389,8 @@ export class MongooseManager {
 
     this.lazyModels.push(m);
 
+    this.models.set(cls.name, m);
+
     return m;
   }
 
@@ -514,6 +518,8 @@ export class MongooseManager {
     })();
 
     this.lazyModels.push(m);
+
+    this.models.set(cls.name, m);
 
     return m;
   }

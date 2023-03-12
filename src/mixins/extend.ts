@@ -4,15 +4,16 @@ import {
   A7Model,
   Ark7ModelMetadata,
   CombinedModelField,
+  EncryptedFieldOptions,
   Manager,
   Model,
   manager as _manager,
   runtime,
-  EncryptedFieldOptions,
 } from '@ark7/model';
 import { PopulateOptions } from 'mongoose';
 
 import { CircleDependencyError } from '../errors';
+import { mongooseManager } from '../mongoose-manager';
 
 const d = debug('ark7:model-mongoose:mixins:extend');
 
@@ -244,16 +245,22 @@ CombinedModelField.prototype.dataLevelPopulates = _.memoize(function (
 
     if (isForeignField && isPopulate) {
       isNestedPopulated = true;
-      res.populates.push({
-        path: this.name,
-        select: _.chain(next.projections)
-          .union(['_id'])
-          .map((p) => [p, 1])
-          .object()
-          .value(),
-        populate: isPopulate ? next.populates : [],
-        strictPopulate: false,
-      });
+      const model = mongooseManager.models.get(type.referenceName);
+      res.populates.push(
+        _.extend(
+          {
+            path: this.name,
+            select: _.chain(next.projections)
+              .union(['_id'])
+              .map((p) => [p, 1])
+              .object()
+              .value(),
+            populate: isPopulate ? next.populates : [],
+            strictPopulate: false,
+          },
+          model != null ? { model } : {},
+        ),
+      );
     }
 
     if (!isForeignField) {
