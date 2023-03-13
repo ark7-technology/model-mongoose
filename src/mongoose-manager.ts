@@ -75,7 +75,7 @@ export type TenantMap = {
 export class MongooseManager {
   options: MongooseManagerOptions = {};
 
-  public models: Map<string, mongoose.Model<any>> = new Map();
+  public static models: Map<string, mongoose.Model<any>> = new Map();
 
   private mongoose: Mongoose;
   private mongooseOptionsMap: Map<string, MongooseOptions> = new Map();
@@ -101,6 +101,10 @@ export class MongooseManager {
 
     this.plugin(MongoosePluginPeriod.BEFORE_REGISTER, dataLevelProjection);
     this.plugin(MongoosePluginPeriod.BEFORE_REGISTER, encryptedField);
+  }
+
+  get models() {
+    return MongooseManager.models;
   }
 
   getModelName(model: any): string {
