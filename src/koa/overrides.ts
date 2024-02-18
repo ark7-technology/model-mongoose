@@ -75,7 +75,7 @@ export function overrides(...rules: OverrideRule[]): Router.IMiddleware {
       const [os, odWithFormat, format1, ...args1] = rule;
       const [od, format, ...args] = odWithFormat.split(':');
       rs.push({
-        src: _.isFunction(os) ? os : () => os,
+        src: (_.isFunction(os) ? os : () => os) as any,
         dst: split(od),
         format: (format || format1) as OverrideRuleFormat,
         args: args.concat(args1),
