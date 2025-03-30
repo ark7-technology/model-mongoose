@@ -109,9 +109,9 @@ describe('data-level', () => {
       g2: 'g2',
     });
 
-    const ins2 = await TestDataLevel3.findById(
-      ins._id,
-      {},
+    const ins2 = await TestDataLevel3.findOne(
+      { _id: ins._id },
+      { __v: 1 },
       { level: DefaultDataLevel.BASIC },
     );
 

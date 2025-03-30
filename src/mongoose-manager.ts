@@ -237,7 +237,7 @@ export class MongooseManager {
 
       if (mongoClient != null) {
         this._encryption = new ClientEncryption(
-          mongoClient,
+          mongoClient as any,
           this.options.multiTenancy.autoEncryption,
         );
       }

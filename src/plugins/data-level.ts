@@ -21,6 +21,7 @@ export const dataLevelProjection: MongooseOptionsPlugin = (
           const level = this.options.level ?? metadata.configs.defaultLevel;
           if (level != null) {
             this._fields = this._fields || {};
+            this._fields.__v = 1;
             const populates = metadata.dataLevelPopulates(level);
 
             for (const p of populates.populates) {
@@ -37,6 +38,7 @@ export const dataLevelProjection: MongooseOptionsPlugin = (
             delete this.options.level;
           }
 
+          this._userProvidedFields = {};
           next();
         },
       );

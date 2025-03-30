@@ -1,6 +1,6 @@
 import 'should';
 
-import { A7Model, StrictModel } from '@ark7/model';
+import { A7Model, Basic, DefaultDataLevel, StrictModel } from '@ark7/model';
 
 import {
   DiscriminateMongooseModel,
@@ -18,6 +18,7 @@ namespace models {
 
   @A7Model({})
   export class DiscriminationModel2 extends DiscriminationModel1 {
+    @Basic()
     foo: string;
   }
 
@@ -70,6 +71,28 @@ describe('discriminator', () => {
     });
 
     m2.kind.should.be.equals('DiscriminationModel2');
+
+    const m21 = (await DiscriminationModel1.findOne(
+      {
+        _id: m2._id,
+      },
+      {},
+      { level: DefaultDataLevel.BASIC },
+    )) as any;
+
+    m21.kind.should.be.equals('DiscriminationModel2');
+    m21.foo.should.be.equals('foo');
+    m21.__v.should.not.be.null();
+
+    const m22 = (await DiscriminationModel1.findOne(
+      {
+        _id: m2._id,
+      },
+      { __v: 1 },
+      { level: DefaultDataLevel.BASIC },
+    )) as any;
+    m22.kind.should.be.equals('DiscriminationModel2');
+    m22.foo.should.be.equals('foo');
   });
 
   it('should allows nested discriminator', async () => {
