@@ -4,3 +4,4 @@ export * from './email';
 export * from './phone-number';
 export * from './object-id';
 export * from './ssn';
+export * from './uuid';

@@ -22,7 +22,7 @@ import { ConnectOptions, IndexDefinition, Mongoose, Types } from 'mongoose';
 import { IndexOptions } from 'mongoose';
 import { MongoError } from 'mongodb';
 
-import { Duration, Email, PhoneNumber, SSN } from './schemas';
+import { Duration, Email, PhoneNumber, SSN, UUID } from './schemas';
 import { Moment } from './schemas/moment';
 import { MongooseKoa } from './mixins/koa';
 import {
@@ -694,7 +694,7 @@ export class MongooseManager {
           return { type: Email, trim: true };
 
         case 'UUID':
-          return { type: mongoose.Schema.Types.UUID, trim: true };
+          return { type: UUID, trim: true };
 
         case 'SSN':
           return { type: SSN, trim: true };
