@@ -45,7 +45,7 @@
   },
   "dependencies": {
     "@ark7/lazyload": "^1.0.2",
-    "@ark7/model": "^2.0.55",
+    "@ark7/model": "^2.0.56",
     "@ark7/router": "^1.0.1",
     "@nodeswork/utils": "^0.1.14",
     "@types/debug": "^4.1.5",

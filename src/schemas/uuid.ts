@@ -4,7 +4,7 @@ import validator from 'validator';
 
 import { BaseSchemaType } from './base-schema-type';
 
-export class UUID extends BaseSchemaType {
+export class StringUUID extends BaseSchemaType {
   constructor(path: string, options: any) {
     super(path, options, 'UUID');
 
@@ -40,9 +40,9 @@ declare module 'mongoose' {
   }
 
   namespace Types {
-    let UUID: any;
+    let StringUUID: any;
   }
 }
 
-mongoose.Schema.Types.StringUUID = UUID;
-mongoose.Types.UUID = String;
+mongoose.Schema.Types.StringUUID = StringUUID;
+mongoose.Types.StringUUID = String;
