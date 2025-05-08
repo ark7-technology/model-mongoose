@@ -15,7 +15,7 @@ export function createdAtPlugin(
 
   function setCreatedAtTimeOnUpdate(next: () => void) {
     if (this._update?.$set?.createdAt == null) {
-      this.update(
+      this.updateOne(
         {},
         {
           $setOnInsert: {
@@ -67,7 +67,7 @@ export function lastUpdateTimePlugin(
   }
 
   function setLastUpdateTimeOnUpdate(next: () => void) {
-    this.update(
+    this.updateOne(
       {},
       {
         $set: {
