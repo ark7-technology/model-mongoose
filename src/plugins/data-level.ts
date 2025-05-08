@@ -46,13 +46,17 @@ export const dataLevelProjection: MongooseOptionsPlugin = (
   }
 };
 
-const preQueries = [
+const preQueries: (
+  | mongoose.MongooseDistinctQueryMiddleware
+  | mongoose.MongooseDefaultQueryMiddleware
+)[] = [
   'find',
   'findOne',
   'count',
   'findOneAndUpdate',
   'findOneAndRemove',
-  'update',
+  'updateMany',
+  'updateOne',
 ];
 
 /**

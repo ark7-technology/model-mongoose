@@ -22,7 +22,7 @@ import { ConnectOptions, IndexDefinition, Mongoose, Types } from 'mongoose';
 import { IndexOptions } from 'mongoose';
 import { MongoError } from 'mongodb';
 
-import { Duration, Email, PhoneNumber, SSN, UUID } from './schemas';
+import { Duration, Email, PhoneNumber, SSN } from './schemas';
 import { Moment } from './schemas/moment';
 import { MongooseKoa } from './mixins/koa';
 import {
@@ -49,7 +49,20 @@ setIsIDFn(
 );
 
 declare module 'mongoose' {
-  interface Model<T, TQueryHelpers = {}, TMethods = {}> {
+  interface Model<
+    TRawDocType,
+    TQueryHelpers = {},
+    TInstanceMethods = {},
+    TVirtuals = {},
+    THydratedDocumentType = HydratedDocument<
+      TRawDocType,
+      TVirtuals & TInstanceMethods,
+      TQueryHelpers
+    >,
+    TSchema = any,
+    T = {},
+    TMethods = {},
+  > {
     mongooseManager: MongooseManager;
   }
 }
@@ -180,12 +193,11 @@ export class MongooseManager {
         },
         this.options.multiTenancy.options,
       ),
-      (err) => {
-        if (this.options.multiTenancy.onError) {
-          this.options.multiTenancy.onError(err, tenancy);
-        }
-      },
-    );
+    ).catch((err) => {
+      if (this.options.multiTenancy.onError) {
+        this.options.multiTenancy.onError(err, tenancy);
+      }
+    });
 
     this.mongooseInstanceMap.set(tenancy, mi);
 
@@ -682,7 +694,7 @@ export class MongooseManager {
           return { type: Email, trim: true };
 
         case 'UUID':
-          return { type: UUID, trim: true };
+          return { type: mongoose.Schema.Types.UUID, trim: true };
 
         case 'SSN':
           return { type: SSN, trim: true };
@@ -1290,7 +1302,10 @@ function cloneMongooseSchemaDisableIndex(
       type._index = null;
     }
 
-    if (options.forceIdToString && type.instance === 'ObjectID') {
+    if (
+      options.forceIdToString &&
+      (type.instance === 'ObjectID' || type.instance === 'ObjectId')
+    ) {
       forceIdPaths.push({ path: type.path, options: type.options });
     }
 

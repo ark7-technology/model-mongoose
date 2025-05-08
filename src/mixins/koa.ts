@@ -253,7 +253,7 @@ export class MongooseKoa extends MongooseModel {
 
       d('getMiddleware.populates: %o', populates);
 
-      let queryPromise = self.findOne(
+      let queryPromise: any = self.findOne(
         query,
         _.union(populates.projections, opts.project),
         queryOption,
@@ -402,7 +402,7 @@ export class MongooseKoa extends MongooseModel {
         projections['score'] = { $meta: 'textScore' };
       }
 
-      let queryPromise = self.find(query, projections, queryOption);
+      let queryPromise: any = self.find(query, projections, queryOption);
 
       if (!_.isEmpty(opts.populate) || !_.isEmpty(populates.populates)) {
         queryPromise = queryPromise.populate(
@@ -619,7 +619,11 @@ export class MongooseKoa extends MongooseModel {
       const upDoc = {
         $set: doc,
       };
-      let updatePromise = model.findOneAndUpdate(query, upDoc, queryOption);
+      let updatePromise: any = model.findOneAndUpdate(
+        query,
+        upDoc,
+        queryOption,
+      );
 
       if (!_.isEmpty(opts.populate) || !_.isEmpty(populates.populates)) {
         updatePromise = updatePromise.populate(
@@ -701,7 +705,7 @@ export class MongooseKoa extends MongooseModel {
       }
 
       if (object) {
-        await object.remove();
+        await object.deleteOne();
       }
 
       if (opts.triggerNext) {
