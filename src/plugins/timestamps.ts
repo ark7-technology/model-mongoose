@@ -3,9 +3,7 @@ import _ from 'underscore';
 import { MongooseOptions } from '../mongoose-manager';
 import { MongooseOptionsPlugin } from '../plugin';
 
-export function createdAtPlugin(
-  fieldName: string = 'createdAt',
-): MongooseOptionsPlugin {
+export function createdAtPlugin(fieldName: string = 'createdAt'): MongooseOptionsPlugin {
   function setCreatedAtTimeOnSave(next: () => void) {
     if (this.isNew && this[fieldName] == null) {
       this[fieldName] = Date.now();
@@ -14,7 +12,7 @@ export function createdAtPlugin(
   }
 
   function setCreatedAtTimeOnUpdate(next: () => void) {
-    if (this._update?.$set?.createdAt == null) {
+    if (this._update?.$set?.createdAt == null && this._update?.$setOnInsert?.createdAt == null) {
       this.updateOne(
         {},
         {
@@ -27,10 +25,7 @@ export function createdAtPlugin(
     next();
   }
 
-  function setCreatedAtTimeOnInsertMany(
-    next: () => void,
-    docs: mongoose.Document[],
-  ) {
+  function setCreatedAtTimeOnInsertMany(next: () => void, docs: mongoose.Document[]) {
     if (_.isArray(docs) && !_.isEmpty(docs)) {
       _.each(docs, (doc: any) => {
         if (doc[fieldName] == null) {
@@ -43,24 +38,13 @@ export function createdAtPlugin(
   }
 
   return (options: MongooseOptions) => {
-    (options.mongooseSchema as mongoose.Schema).pre(
-      'save',
-      setCreatedAtTimeOnSave,
-    );
-    (options.mongooseSchema as mongoose.Schema).pre(
-      'findOneAndUpdate',
-      setCreatedAtTimeOnUpdate,
-    );
-    (options.mongooseSchema as mongoose.Schema).pre(
-      'insertMany',
-      setCreatedAtTimeOnInsertMany,
-    );
+    (options.mongooseSchema as mongoose.Schema).pre('save', setCreatedAtTimeOnSave);
+    (options.mongooseSchema as mongoose.Schema).pre('findOneAndUpdate', setCreatedAtTimeOnUpdate);
+    (options.mongooseSchema as mongoose.Schema).pre('insertMany', setCreatedAtTimeOnInsertMany);
   };
 }
 
-export function lastUpdateTimePlugin(
-  fieldName: string = 'lastUpdateTime',
-): MongooseOptionsPlugin {
+export function lastUpdateTimePlugin(fieldName: string = 'lastUpdateTime'): MongooseOptionsPlugin {
   function setLastUpdateTimeOnSave(next: () => void) {
     this[fieldName] = Date.now();
     next();
@@ -78,10 +62,7 @@ export function lastUpdateTimePlugin(
     next();
   }
 
-  function setLastUpdateTimeOnInsertMany(
-    next: () => void,
-    docs: mongoose.Document[],
-  ) {
+  function setLastUpdateTimeOnInsertMany(next: () => void, docs: mongoose.Document[]) {
     if (_.isArray(docs) && !_.isEmpty(docs)) {
       _.each(docs, (doc: any) => {
         if (doc[fieldName] == null) {
@@ -94,17 +75,8 @@ export function lastUpdateTimePlugin(
   }
 
   return (options: MongooseOptions) => {
-    (options.mongooseSchema as mongoose.Schema).pre(
-      'save',
-      setLastUpdateTimeOnSave,
-    );
-    (options.mongooseSchema as mongoose.Schema).pre(
-      'findOneAndUpdate',
-      setLastUpdateTimeOnUpdate,
-    );
-    (options.mongooseSchema as mongoose.Schema).pre(
-      'insertMany',
-      setLastUpdateTimeOnInsertMany,
-    );
+    (options.mongooseSchema as mongoose.Schema).pre('save', setLastUpdateTimeOnSave);
+    (options.mongooseSchema as mongoose.Schema).pre('findOneAndUpdate', setLastUpdateTimeOnUpdate);
+    (options.mongooseSchema as mongoose.Schema).pre('insertMany', setLastUpdateTimeOnInsertMany);
   };
 }
