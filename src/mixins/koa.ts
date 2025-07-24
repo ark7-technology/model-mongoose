@@ -1,13 +1,7 @@
 import * as mongoose from 'mongoose';
 import _ from 'underscore';
 import debug from 'debug';
-import {
-  A7Model,
-  DefaultDataLevel,
-  DocumentToObjectOptions,
-  Manager,
-  manager as _manager,
-} from '@ark7/model';
+import { A7Model, DefaultDataLevel, DocumentToObjectOptions, Manager, manager as _manager } from '@ark7/model';
 import { IMiddleware, IRouterContext } from 'koa-router';
 import { NodesworkError } from '@nodeswork/utils';
 import { PopulateOptions } from 'mongoose';
@@ -53,14 +47,7 @@ export interface IOverrides {
 }
 
 export type IOverwritesAggregation = [
-  (
-    | 'sum'
-    | 'sumBefore'
-    | 'sumAfter'
-    | 'sumCurrentAndBefore'
-    | 'sumCurrent'
-    | 'sumCurrentAndAfter'
-  ),
+  'sum' | 'sumBefore' | 'sumAfter' | 'sumCurrentAndBefore' | 'sumCurrent' | 'sumCurrentAndAfter',
   string /* field name */,
 ];
 
@@ -77,15 +64,11 @@ export namespace aggregator {
     return ['sumAfter', field];
   }
 
-  export function sumCurrentAndBefore(
-    field: string,
-  ): ['sumCurrentAndBefore', string] {
+  export function sumCurrentAndBefore(field: string): ['sumCurrentAndBefore', string] {
     return ['sumCurrentAndBefore', field];
   }
 
-  export function sumCurrentAndAfter(
-    field: string,
-  ): ['sumCurrentAndAfter', string] {
+  export function sumCurrentAndAfter(field: string): ['sumCurrentAndAfter', string] {
     return ['sumCurrentAndAfter', field];
   }
 
@@ -101,19 +84,11 @@ export class MongooseKoa extends MongooseModel {
   /**
    * Returns Koa create middleware.
    */
-  public static createMiddleware(
-    options: CreateOptions,
-    manager: Manager = _manager,
-  ): IMiddleware {
+  public static createMiddleware(options: CreateOptions, manager: Manager = _manager): IMiddleware {
     const metadata = this.getMetadata(manager);
     const self = this.cast();
 
-    options = _.defaults(
-      {},
-      options,
-      DEFAULT_COMMON_OPTIONS,
-      DEFAULT_CREATE_OPTIONS,
-    );
+    options = _.defaults({}, options, DEFAULT_COMMON_OPTIONS, DEFAULT_CREATE_OPTIONS);
 
     async function create(ctx: IRouterContext, next: INext) {
       const opts: CreateOptions = _.extend({}, options, ctx.overrides?.options);
@@ -127,9 +102,7 @@ export class MongooseKoa extends MongooseModel {
         await next();
       }
 
-      const populates = metadata.dataLevelPopulates(
-        opts.level || DefaultDataLevel.DETAIL,
-      );
+      const populates = metadata.dataLevelPopulates(opts.level || DefaultDataLevel.DETAIL);
 
       doc = dotty.get(ctx, opts.target);
       let object: any = (await self.create(doc)) as any;
@@ -145,10 +118,7 @@ export class MongooseKoa extends MongooseModel {
       dotty.set(ctx, opts.target, object);
 
       if (opts.populate || !_.isEmpty(populates.populates)) {
-        await self.populate(
-          object,
-          _.union(populates.populates, opts.populate),
-        );
+        await self.populate(object, _.union(populates.populates, opts.populate));
       }
 
       const postMethods = options.postMethods ?? ['$onUpdate'];
@@ -160,11 +130,7 @@ export class MongooseKoa extends MongooseModel {
       }
 
       if (!opts.noBody) {
-        ctx.body = await opts.transform(
-          object.toJSON(_.pick(opts, 'level')),
-          object,
-          ctx,
-        );
+        ctx.body = await opts.transform(object.toJSON(_.pick(opts, 'level')), object, ctx);
       }
     }
 
@@ -205,10 +171,7 @@ export class MongooseKoa extends MongooseModel {
    *                            Default: false.
    * @param options.transform a map function before send to ctx.body.
    */
-  public static getMiddleware(
-    options: GetOptions,
-    manager: Manager = _manager,
-  ): IMiddleware {
+  public static getMiddleware(options: GetOptions, manager: Manager = _manager): IMiddleware {
     const metadata = this.getMetadata(manager);
     const self = this.cast();
 
@@ -217,11 +180,7 @@ export class MongooseKoa extends MongooseModel {
     const idFieldName = options.idFieldName;
 
     async function get(ctx: IRouterContext, next: INext) {
-      const opts: GetOptions = _.extend(
-        {},
-        options,
-        ctx.overrides && ctx.overrides.options,
-      );
+      const opts: GetOptions = _.extend({}, options, ctx.overrides && ctx.overrides.options);
       const query = (ctx.overrides && ctx.overrides.query) || {};
       if (opts.field !== '*') {
         if (opts.field.indexOf('.') >= 0) {
@@ -247,22 +206,14 @@ export class MongooseKoa extends MongooseModel {
 
       const queryOption: any = _.pick(opts, 'level', 'lean');
 
-      const populates = metadata.dataLevelPopulates(
-        opts.level || DefaultDataLevel.DETAIL,
-      );
+      const populates = metadata.dataLevelPopulates(opts.level || DefaultDataLevel.DETAIL);
 
       d('getMiddleware.populates: %o', populates);
 
-      let queryPromise: any = self.findOne(
-        query,
-        _.union(populates.projections, opts.project),
-        queryOption,
-      );
+      let queryPromise: any = self.findOne(query, _.union(populates.projections, opts.project), queryOption);
 
       if (!_.isEmpty(opts.populate) || !_.isEmpty(populates.populates)) {
-        queryPromise = queryPromise.populate(
-          _.union(populates.populates, opts.populate),
-        );
+        queryPromise = queryPromise.populate(_.union(populates.populates, opts.populate));
       }
 
       const object = await queryPromise;
@@ -278,11 +229,7 @@ export class MongooseKoa extends MongooseModel {
       }
 
       if (!opts.noBody) {
-        ctx.body = await opts.transform(
-          object.toJSON(_.pick(opts, 'level')),
-          object,
-          ctx,
-        );
+        ctx.body = await opts.transform(object.toJSON(_.pick(opts, 'level')), object, ctx);
       }
     }
 
@@ -324,10 +271,7 @@ export class MongooseKoa extends MongooseModel {
    *  @param options.project specifies the projection.
    *  @param options.populate specifies the populates.
    */
-  public static findMiddleware(
-    options: FindOptions = {},
-    manager: Manager = _manager,
-  ): IMiddleware {
+  public static findMiddleware(options: FindOptions = {}, manager: Manager = _manager): IMiddleware {
     const metadata = this.getMetadata(manager);
     const self = this.cast();
 
@@ -347,18 +291,11 @@ export class MongooseKoa extends MongooseModel {
       options.pagination &&
       params({
         'query.page': [validators.toInt()],
-        'query.size': [
-          validators.toInt(),
-          validators.isEnum(options.pagination.sizeChoices),
-        ],
+        'query.size': [validators.toInt(), validators.isEnum(options.pagination.sizeChoices)],
       });
 
     async function find(ctx: IRouterContext, next: INext) {
-      const opts: FindOptions = _.extend(
-        { strict: false },
-        options,
-        ctx.overrides && ctx.overrides.options,
-      );
+      const opts: FindOptions = _.extend({ strict: false }, options, ctx.overrides && ctx.overrides.options);
       const query = (ctx.overrides && ctx.overrides.query) || {};
       const queryOption: any = _.pick(opts, 'sort', 'lean', 'level', 'strict');
       let pagination: any = null;
@@ -381,9 +318,7 @@ export class MongooseKoa extends MongooseModel {
         queryOption.sort = ctx.overrides.sort;
       }
 
-      const populates = metadata.dataLevelPopulates(
-        opts.level || DefaultDataLevel.DETAIL,
-      );
+      const populates = metadata.dataLevelPopulates(opts.level || DefaultDataLevel.DETAIL);
 
       d('findMiddleware.populates: %o', populates);
 
@@ -405,9 +340,7 @@ export class MongooseKoa extends MongooseModel {
       let queryPromise: any = self.find(query, projections, queryOption);
 
       if (!_.isEmpty(opts.populate) || !_.isEmpty(populates.populates)) {
-        queryPromise = queryPromise.populate(
-          _.union(populates.populates, opts.populate),
-        );
+        queryPromise = queryPromise.populate(_.union(populates.populates, opts.populate));
       }
 
       const object = await queryPromise;
@@ -420,80 +353,70 @@ export class MongooseKoa extends MongooseModel {
           : {
               pageSize: pagination.size,
               page: pagination.page,
-              total: await self
-                .find(query, {}, _.pick(queryOption, 'strict'))
-                .countDocuments(),
+              total: await self.find(query, {}, _.pick(queryOption, 'strict')).countDocuments(),
               data: _.clone(object),
             };
 
       if (pagination?.agg) {
         await Promise.all(
-          _.map(
-            pagination.agg,
-            async ([oper, field]: IOverwritesAggregation, key: string) => {
-              const ss = new (mongoose.Query as any)(
-                query,
-                {},
-                self,
-                self.collection,
-              );
-              ss._castConditions();
+          _.map(pagination.agg, async ([oper, field]: IOverwritesAggregation, key: string) => {
+            const ss = new (mongoose.Query as any)(query, {}, self, self.collection);
+            ss._castConditions();
 
-              const pipes: any[] = [{ $match: ss._conditions }];
+            const pipes: any[] = [{ $match: ss._conditions }];
 
-              if (queryOption?.sort) {
-                pipes.push({
-                  $sort: queryOption.sort,
-                });
-              }
+            if (queryOption?.sort) {
+              pipes.push({
+                $sort: queryOption.sort,
+              });
+            }
 
-              if (oper === 'sumCurrent' || oper === 'sumCurrentAndAfter') {
-                pipes.push({
-                  $skip: pagination.page * pagination.size,
-                });
-              }
+            if (oper === 'sumCurrent' || oper === 'sumCurrentAndAfter') {
+              pipes.push({
+                $skip: pagination.page * pagination.size,
+              });
+            }
 
-              if (oper === 'sumAfter') {
-                pipes.push({
-                  $skip: (pagination.page + 1) * pagination.size,
-                });
-              }
+            if (oper === 'sumAfter') {
+              pipes.push({
+                $skip: (pagination.page + 1) * pagination.size,
+              });
+            }
 
-              if (oper === 'sumCurrent') {
-                pipes.push({
-                  $limit: pagination.size,
-                });
-              }
+            if (oper === 'sumCurrent') {
+              pipes.push({
+                $limit: pagination.size,
+              });
+            }
 
-              if (oper === 'sumBefore') {
-                if (pagination.page === 0) {
-                  dotty.set(bodyTarget, ['agg', key], 0);
-                  return;
-                }
-
-                pipes.push({
-                  $limit: pagination.page * pagination.size,
-                });
-              }
-
-              if (oper === 'sumCurrentAndBefore') {
-                pipes.push({
-                  $limit: (pagination.page + 1) * pagination.size,
-                });
+            if (oper === 'sumBefore') {
+              if (pagination.page === 0) {
+                dotty.set(bodyTarget, ['agg', key], 0);
+                return;
               }
 
               pipes.push({
-                $group: {
-                  _id: 'all',
-                  [key ?? field]: { $sum: `$${field}` },
-                },
+                $limit: pagination.page * pagination.size,
               });
+            }
 
-              const agg: any = await self.aggregate(pipes).exec();
+            if (oper === 'sumCurrentAndBefore') {
+              pipes.push({
+                $limit: (pagination.page + 1) * pagination.size,
+              });
+            }
 
-              dotty.set(bodyTarget, ['agg', key], _.first(agg)?.[key] || 0);
-            },
-          ),
+            pipes.push({
+              $group: {
+                _id: 'all',
+                [key ?? field]: { $sum: `$${field}` },
+              },
+            });
+
+            const agg: any = await self.aggregate(pipes).exec();
+
+            dotty.set(bodyTarget, ['agg', key], _.first(agg)?.[key] || 0);
+          }),
         );
       }
 
@@ -531,10 +454,7 @@ export class MongooseKoa extends MongooseModel {
     return find;
   }
 
-  public static updateMiddleware(
-    options: UpdateOptions,
-    manager: Manager = _manager,
-  ): IMiddleware {
+  public static updateMiddleware(options: UpdateOptions, manager: Manager = _manager): IMiddleware {
     const metadata = this.getMetadata(manager);
     const self = this.cast();
 
@@ -543,11 +463,7 @@ export class MongooseKoa extends MongooseModel {
     const idFieldName = options.idFieldName;
 
     async function update(ctx: IRouterContext, next: INext) {
-      const opts = _.extend(
-        {},
-        options,
-        ctx.overrides && ctx.overrides.options,
-      );
+      const opts = _.extend({}, options, ctx.overrides && ctx.overrides.options);
       const query = (ctx.overrides && ctx.overrides.query) || {};
       if (opts.field !== '*') {
         if (opts.field.indexOf('.') >= 0) {
@@ -570,9 +486,7 @@ export class MongooseKoa extends MongooseModel {
         });
       }
 
-      const populates = metadata.dataLevelPopulates(
-        opts.level || DefaultDataLevel.DETAIL,
-      );
+      const populates = metadata.dataLevelPopulates(opts.level || DefaultDataLevel.DETAIL);
 
       d('updateMiddleware.populates: %o', populates);
 
@@ -584,13 +498,7 @@ export class MongooseKoa extends MongooseModel {
         context: 'query',
         lean: opts.lean,
       };
-      const omits = _.union(
-        ['_id'],
-        [idFieldName],
-        opts.omits,
-        metadata.autogenFields(),
-        metadata.readonlyFields(),
-      );
+      const omits = _.union(['_id'], [idFieldName], opts.omits, metadata.autogenFields(), metadata.readonlyFields());
 
       const fOmits = _.filter(Object.keys(ctx.request.body), (k) => {
         return _.find(omits, (o) => o === k || k.startsWith(o + '.')) != null;
@@ -619,16 +527,10 @@ export class MongooseKoa extends MongooseModel {
       const upDoc = {
         $set: doc,
       };
-      let updatePromise: any = model.findOneAndUpdate(
-        query,
-        upDoc,
-        queryOption,
-      );
+      let updatePromise: any = model.findOneAndUpdate(query, upDoc, queryOption);
 
       if (!_.isEmpty(opts.populate) || !_.isEmpty(populates.populates)) {
-        updatePromise = updatePromise.populate(
-          _.union(populates.populates, opts.populate),
-        );
+        updatePromise = updatePromise.populate(_.union(populates.populates, opts.populate));
       }
       const object = await updatePromise;
 
@@ -651,11 +553,7 @@ export class MongooseKoa extends MongooseModel {
       }
 
       if (!opts.noBody) {
-        ctx.body = await opts.transform(
-          object.toJSON(_.pick(opts, 'level')),
-          object,
-          ctx,
-        );
+        ctx.body = await opts.transform(object.toJSON(_.pick(opts, 'level')), object, ctx);
       }
     }
 
@@ -667,21 +565,14 @@ export class MongooseKoa extends MongooseModel {
     return update;
   }
 
-  public static deleteMiddleware(
-    options: DeleteOptions,
-    manager: Manager = _manager,
-  ): IMiddleware {
+  public static deleteMiddleware(options: DeleteOptions, manager: Manager = _manager): IMiddleware {
     const self = this.cast();
 
     options = _.defaults({}, options, DEFAULT_DELETE_OPTIONS);
     const idFieldName = options.idFieldName;
 
     async function del(ctx: IRouterContext, next: INext) {
-      const opts = _.extend(
-        {},
-        options,
-        ctx.overrides && ctx.overrides.options,
-      );
+      const opts = _.extend({}, options, ctx.overrides && ctx.overrides.options);
       const query = (ctx.overrides && ctx.overrides.query) || {};
 
       if (opts.field.indexOf('.') >= 0) {
@@ -781,7 +672,7 @@ const DEFAULT_DELETE_OPTIONS: Partial<DeleteOptions> = _.defaults(
 
 const DEFAULT_FIND_PAGINATION_OPTIONS = {
   size: 20,
-  sizeChoices: [20, 50, 100, 200, 1000, 2000],
+  sizeChoices: [5, 10, 20, 50, 100, 200, 1000, 2000],
 };
 
 export interface CommonResponseOptions {
@@ -807,10 +698,7 @@ export interface CommonWriteOptions {
   postMethods?: string[];
 }
 
-export interface CreateOptions
-  extends CommonOptions,
-    CommonResponseOptions,
-    CommonWriteOptions {}
+export interface CreateOptions extends CommonOptions, CommonResponseOptions, CommonWriteOptions {}
 
 /**
  * When read/write/delete to a single item.
@@ -829,16 +717,9 @@ export interface SingleItemOptions {
 /**
  * Get Middleware Options.
  */
-export interface GetOptions
-  extends CommonOptions,
-    CommonResponseOptions,
-    CommonReadOptions,
-    SingleItemOptions {}
+export interface GetOptions extends CommonOptions, CommonResponseOptions, CommonReadOptions, SingleItemOptions {}
 
-export interface FindOptions
-  extends CommonOptions,
-    CommonResponseOptions,
-    CommonReadOptions {
+export interface FindOptions extends CommonOptions, CommonResponseOptions, CommonReadOptions {
   pagination?: {
     size?: number;
     sizeChoices?: number[];
@@ -852,11 +733,7 @@ export interface FindOptions
   strict?: boolean;
 }
 
-export interface UpdateOptions
-  extends CommonOptions,
-    CommonResponseOptions,
-    CommonWriteOptions,
-    SingleItemOptions {}
+export interface UpdateOptions extends CommonOptions, CommonResponseOptions, CommonWriteOptions, SingleItemOptions {}
 
 export interface DeleteOptions extends CommonOptions, SingleItemOptions {}
 
@@ -872,9 +749,7 @@ export interface PaginationData<T> {
   };
 }
 
-export function isPaginationData<T>(
-  data: PaginationData<T> | any,
-): data is PaginationData<T> {
+export function isPaginationData<T>(data: PaginationData<T> | any): data is PaginationData<T> {
   return (
     data &&
     data.pageSize != null &&
