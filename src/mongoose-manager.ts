@@ -372,14 +372,12 @@ export class MongooseManager {
       );
 
       if (!this.options.multiTenancy?.enabled) {
-        const parentIndexSpecs = parentModel.schema.indexes();
-
         const model = parentModel.discriminator(
           mongooseOptions.name,
           mongooseOptions.mongooseSchema as mongoose.Schema,
         );
 
-        patchDiscriminatorIndexes(model, parentIndexSpecs);
+        patchDiscriminatorIndexes(model, parentModel.schema);
 
         model.on('index', (err: any) => {
           if (err) {
@@ -403,14 +401,12 @@ export class MongooseManager {
       for (const tenancy of this.tenants) {
         const m = parentTenantMap[tenancy];
 
-        const parentIndexSpecs = m.schema.indexes();
-
         const model = m.discriminator(
           mongooseOptions.name,
           mongooseOptions.mongooseSchema as mongoose.Schema,
         );
 
-        patchDiscriminatorIndexes(model, parentIndexSpecs);
+        patchDiscriminatorIndexes(model, m.schema);
 
         model.on('index', (err: any) => {
           if (err) {
@@ -1316,28 +1312,24 @@ export const shareFns = ['on'];
 
 /**
  * Patch a discriminator model's schema.indexes() so that deferred
- * ensureIndexes() skips indexes inherited from the parent model.
- * Mongoose 7 adds partialFilterExpression to discriminator indexes,
- * which conflicts with the parent's identical indexes.
+ * ensureIndexes() skips indexes on fields inherited from the parent.
+ * Mongoose 7 decorates discriminator indexes with partialFilterExpression,
+ * which conflicts with existing indexes on the same collection.
+ *
+ * Filters out any index whose fields ALL exist on the parent schema,
+ * since those are inherited paths and the parent already handles them.
  */
 function patchDiscriminatorIndexes(
   model: any,
-  parentIndexSpecs: any[],
+  parentSchema: mongoose.Schema,
 ): void {
-  if (parentIndexSpecs.length === 0) return;
-
   const origIndexesFn = model.schema.indexes;
   model.schema.indexes = function () {
     const allIndexes = origIndexesFn.call(this);
     return allIndexes.filter(([fields]: [any]) => {
       const keys = Object.keys(fields);
-      return !parentIndexSpecs.some(([pFields]: [any]) => {
-        const pKeys = Object.keys(pFields);
-        return (
-          keys.length === pKeys.length &&
-          keys.every((k: string, i: number) => k === pKeys[i] && fields[k] === pFields[k])
-        );
-      });
+      // Keep only indexes that reference at least one child-only field.
+      return keys.some((k: string) => parentSchema.path(k) == null);
     });
   };
 }
