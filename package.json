@@ -1,6 +1,6 @@
 {
   "name": "@ark7/model-mongoose",
-  "version": "2.0.74",
+  "version": "2.0.75",
   "description": "Type-script friendly, object-oriented, database modeling framework",
   "types": "index.d.ts",
   "main": "index.js",
