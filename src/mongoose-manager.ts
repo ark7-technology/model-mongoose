@@ -372,10 +372,24 @@ export class MongooseManager {
       );
 
       if (!this.options.multiTenancy?.enabled) {
+        const parentIndexSpecs = parentModel.schema.indexes();
+
         const model = parentModel.discriminator(
           mongooseOptions.name,
           mongooseOptions.mongooseSchema as mongoose.Schema,
         );
+
+        patchDiscriminatorIndexes(model, parentIndexSpecs);
+
+        model.on('index', (err: any) => {
+          if (err) {
+            if (this.indexErrorHandler != null) {
+              this.indexErrorHandler(err);
+            } else {
+              throw new Error(`${mongooseOptions.name} index error: ${err}`);
+            }
+          }
+        });
 
         model.mongooseManager = this;
 
@@ -389,10 +403,24 @@ export class MongooseManager {
       for (const tenancy of this.tenants) {
         const m = parentTenantMap[tenancy];
 
+        const parentIndexSpecs = m.schema.indexes();
+
         const model = m.discriminator(
           mongooseOptions.name,
           mongooseOptions.mongooseSchema as mongoose.Schema,
         );
+
+        patchDiscriminatorIndexes(model, parentIndexSpecs);
+
+        model.on('index', (err: any) => {
+          if (err) {
+            if (this.indexErrorHandler != null) {
+              this.indexErrorHandler(err);
+            } else {
+              throw new Error(`${mongooseOptions.name} index error: ${err}`);
+            }
+          }
+        });
 
         model.mongooseManager = this;
         tenantMap[tenancy] = model;
@@ -1285,6 +1313,34 @@ export class NativeError extends global.Error {}
 export const lazyFns: string[] = [];
 
 export const shareFns = ['on'];
+
+/**
+ * Patch a discriminator model's schema.indexes() so that deferred
+ * ensureIndexes() skips indexes inherited from the parent model.
+ * Mongoose 7 adds partialFilterExpression to discriminator indexes,
+ * which conflicts with the parent's identical indexes.
+ */
+function patchDiscriminatorIndexes(
+  model: any,
+  parentIndexSpecs: any[],
+): void {
+  if (parentIndexSpecs.length === 0) return;
+
+  const origIndexesFn = model.schema.indexes;
+  model.schema.indexes = function () {
+    const allIndexes = origIndexesFn.call(this);
+    return allIndexes.filter(([fields]: [any]) => {
+      const keys = Object.keys(fields);
+      return !parentIndexSpecs.some(([pFields]: [any]) => {
+        const pKeys = Object.keys(pFields);
+        return (
+          keys.length === pKeys.length &&
+          keys.every((k: string, i: number) => k === pKeys[i] && fields[k] === pFields[k])
+        );
+      });
+    });
+  };
+}
 
 function cloneMongooseSchemaDisableIndex(
   options: CloneMongooseSchemaDisableIndexOptions,
