@@ -239,6 +239,34 @@ export class MongooseManager {
     return mongooseInstance?.connection;
   }
 
+  /**
+   * Register another manager's models into this manager's connection(s),
+   * so that populate() can resolve cross-database Ref<> references.
+   * Each model retains its original connection for queries.
+   */
+  linkModels(otherManager: MongooseManager): void {
+    if (!this.options.multiTenancy?.enabled) {
+      // Single-tenant: copy into this.mongoose.connection.models
+      const models = this.mongoose.connection.models as Record<string, any>;
+      for (const [name, model] of otherManager.models) {
+        if (models[name] == null) {
+          models[name] = model;
+        }
+      }
+    } else {
+      // Multi-tenant: copy into each tenant's mongoose instance connection
+      for (const tenancy of this.tenants) {
+        const mi = this.getMongooseInstance(tenancy);
+        const models = mi.connection.models as Record<string, any>;
+        for (const [name, model] of otherManager.models) {
+          if (models[name] == null) {
+            models[name] = model;
+          }
+        }
+      }
+    }
+  }
+
   getClientEncryption() {
     if (this.options?.multiTenancy?.autoEncryption == null) {
       return null;
