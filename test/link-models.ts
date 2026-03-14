@@ -8,7 +8,7 @@ import {
   Model,
   Ref,
 } from '@ark7/model';
-import { Mongoose } from 'mongoose';
+import { Mongoose, Types } from 'mongoose';
 
 import { MongooseManager, mongooseManager } from '../src';
 
@@ -21,6 +21,16 @@ namespace models {
   @A7Model({})
   export class LinkTarget extends Model {
     source: Ref<LinkSource>;
+  }
+
+  @A7Model({})
+  export class StringRefSource extends Model {
+    name: string;
+  }
+
+  @A7Model({})
+  export class StringRefTarget extends Model {
+    source: Ref<StringRefSource>;
   }
 
   @A7Model({})
@@ -76,7 +86,9 @@ describe('linkModels', () => {
     it('should copy source models into target connection', () => {
       const conn = (targetManager as any).mongoose.connection;
       should(conn.models['LinkSource']).be.ok();
-      should(conn.models['LinkSource']).equal(LinkSource);
+      // LinkSource variable is a lazyload proxy; the connection stores the
+      // resolved model. Verify by comparing modelName instead of identity.
+      conn.models['LinkSource'].modelName.should.equal('LinkSource');
     });
 
     it('should not overwrite existing models', () => {
@@ -151,6 +163,94 @@ describe('linkModels', () => {
       // At BASIC level, the populated ref should only have BASIC fields
       found.ref.name.should.equal('visible');
       should(found.ref.secret).be.undefined();
+    });
+  });
+
+  describe('string-ref populate (same db)', () => {
+    let StringRefSource: any;
+    let StringRefTarget: any;
+
+    before(() => {
+      StringRefSource = mongooseManager.register(models.StringRefSource);
+      StringRefTarget = mongooseManager.register(models.StringRefTarget);
+    });
+
+    before(async () => {
+      await StringRefSource.deleteMany({});
+      await StringRefTarget.deleteMany({});
+    });
+
+    it('should populate when ref is stored as a string id', async () => {
+      const src = await StringRefSource.create({ name: 'str-ref' });
+      const srcId = src._id.toString();
+
+      // Insert directly via collection driver to store the ref as a plain
+      // string instead of an ObjectId.
+      const targetId = new Types.ObjectId();
+      await StringRefTarget.collection.insertOne({
+        _id: targetId,
+        source: srcId,
+      });
+
+      const populated = await StringRefTarget.findById(targetId).populate(
+        'source',
+      );
+      should(populated.source).be.ok();
+      populated.source.name.should.equal('str-ref');
+    });
+  });
+
+  describe('string-ref populate (cross db)', () => {
+    let crossSourceManager: MongooseManager;
+    let crossTargetManager: MongooseManager;
+    let CrossStringRefSource: any;
+    let CrossStringRefTarget: any;
+
+    before(async () => {
+      const srcMongoose = new Mongoose();
+      await srcMongoose.connect(
+        'mongodb://localhost:27017/model-mongoose-test',
+      );
+
+      const tgtMongoose = new Mongoose();
+      await tgtMongoose.connect(
+        'mongodb://localhost:27017/model-mongoose-test',
+      );
+
+      crossSourceManager = new MongooseManager(srcMongoose);
+      crossTargetManager = new MongooseManager(tgtMongoose);
+
+      CrossStringRefSource = crossSourceManager.register(
+        models.StringRefSource,
+      );
+      CrossStringRefTarget = crossTargetManager.register(
+        models.StringRefTarget,
+      );
+
+      // Force-resolve lazy proxies before linkModels
+      await CrossStringRefSource.deleteMany({});
+      await CrossStringRefTarget.deleteMany({});
+
+      crossTargetManager.linkModels(crossSourceManager);
+    });
+
+    it('should populate when ref is stored as a string id across connections', async () => {
+      const src = await CrossStringRefSource.create({ name: 'cross-str-ref' });
+      const srcId = src._id.toString();
+
+      // Insert directly via collection driver to store the ref as a plain
+      // string instead of an ObjectId.
+      const targetId = new Types.ObjectId();
+      await CrossStringRefTarget.collection.insertOne({
+        _id: targetId,
+        source: srcId,
+      });
+
+      const populated = await CrossStringRefTarget.findById(
+        targetId,
+      ).populate('source');
+      should(populated.source).be.ok();
+      populated.source.name.should.equal('cross-str-ref');
     });
   });
 });

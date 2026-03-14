@@ -12,6 +12,7 @@
     - [Mongoose Configurations](#mongoose-configurations)
   - [Usage](#usage)
 - [Advanced Features](#advanced-features)
+  - [Cross-Database Population](#cross-database-population)
   - [Field Index](#field-index)
   - [Compound Index](#compound-index)
   - [Timestamp Plugins](#timestamp-plugins)
@@ -147,6 +148,38 @@ y.name.fullname.should.be.equals('fff wang');
 ```
 
 ## Advanced Features
+
+### Cross-Database Population
+
+When models live on separate databases (separate `MongooseManager` instances),
+`populate()` cannot resolve `Ref<>` fields across connections by default. Use
+`linkModels()` to register one manager's models into another manager's
+connection so that cross-database population works.
+
+```typescript
+import { Mongoose } from 'mongoose';
+import { MongooseManager } from '@ark7/model-mongoose';
+
+const coreMongoose = new Mongoose();
+await coreMongoose.connect('mongodb://localhost:27017/core-db');
+const coreManager = new MongooseManager(coreMongoose);
+
+const analyticsMongoose = new Mongoose();
+await analyticsMongoose.connect('mongodb://localhost:27017/analytics-db');
+const analyticsManager = new MongooseManager(analyticsMongoose);
+
+// Register models on their respective managers
+const User = coreManager.register(UserModel);
+const Report = analyticsManager.register(ReportModel);
+
+// Make core models visible to the analytics manager so that
+// Report.find().populate('author') can resolve User refs.
+analyticsManager.linkModels(coreManager);
+```
+
+`linkModels` resolves all lazy proxies in the source manager before copying,
+so callers don't need to pre-resolve models. It also works with multi-tenancy
+setups, copying models into each tenant's connection.
 
 ### Default
 

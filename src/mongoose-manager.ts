@@ -245,10 +245,23 @@ export class MongooseManager {
    * Each model retains its original connection for queries.
    */
   linkModels(otherManager: MongooseManager): void {
+    // Resolve the other manager's lazy proxies so we copy real model
+    // objects, not unresolved proxies that would trigger cascading
+    // resolution (and infinite recursion) when inserted into
+    // connection.models.
+    otherManager.completeModelRegistration();
+
+    // Read from the other manager's connection.models — this contains
+    // only models registered on that connection (already resolved),
+    // unlike the static MongooseManager.models which is shared across
+    // all managers and may contain unresolved proxies from other
+    // managers.
+    const sourceModels = otherManager.mongoose.connection.models;
+
     if (!this.options.multiTenancy?.enabled) {
       // Single-tenant: copy into this.mongoose.connection.models
       const models = this.mongoose.connection.models as Record<string, any>;
-      for (const [name, model] of otherManager.models) {
+      for (const [name, model] of Object.entries(sourceModels)) {
         if (models[name] == null) {
           models[name] = model;
         }
@@ -258,7 +271,7 @@ export class MongooseManager {
       for (const tenancy of this.tenants) {
         const mi = this.getMongooseInstance(tenancy);
         const models = mi.connection.models as Record<string, any>;
-        for (const [name, model] of otherManager.models) {
+        for (const [name, model] of Object.entries(sourceModels)) {
           if (models[name] == null) {
             models[name] = model;
           }
