@@ -1,6 +1,6 @@
 {
   "name": "@ark7/model-mongoose",
-  "version": "2.0.76",
+  "version": "2.0.82",
   "description": "Type-script friendly, object-oriented, database modeling framework",
   "types": "index.d.ts",
   "main": "index.js",
@@ -11,7 +11,7 @@
     "release": "scripts/release",
     "build": "scripts/build",
     "ts-patch:install": "./node_modules/.bin/ts-patch install",
-    "test": "npm run ts-patch:install && npm run compile:src && NODE_ENV=test node_modules/.bin/mocha --trace-warnings --require ts-node/register --timeout 20000 --exit \"test/**/*.ts\""
+    "test": "npm run ts-patch:install && npm run compile:src && NODE_ENV=test node scripts/mocha --trace-warnings --require ts-node/register --timeout 20000 --exit \"test/**/*.ts\""
   },
   "repository": {
     "type": "git",
@@ -61,13 +61,14 @@
     "koa-router": "^10.0.0",
     "moment": "^2.30.1",
     "moment-timezone": "^0.5.35",
+    "mongodb": "^6.0.0",
     "object-path": "^0.11.8",
     "reflect-metadata": "^0.1.13",
     "underscore": "^1.13.2",
     "validator": "^13.7.0"
   },
   "peerDependencies": {
-    "mongodb-client-encryption": "^2.2.1",
+    "mongodb-client-encryption": "^6.0.0",
     "mongoose": "^7.8.7"
   },
   "importSort": {

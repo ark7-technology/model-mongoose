@@ -1,0 +1,25 @@
+#!/usr/bin/env node
+// Wrapper for mocha that disables Node.js 22+'s experimental TypeScript
+// stripping, which is incompatible with ts-node and namespace declarations.
+
+const { spawnSync } = require('child_process');
+
+const nodeVersion = parseInt(process.versions.node.split('.')[0], 10);
+
+if (nodeVersion >= 22) {
+  process.env.NODE_OPTIONS = [
+    process.env.NODE_OPTIONS,
+    '--no-experimental-strip-types',
+  ]
+    .filter(Boolean)
+    .join(' ');
+}
+
+const mochaPath = require.resolve('mocha/bin/mocha');
+const args = process.argv.slice(2);
+const result = spawnSync(process.execPath, [mochaPath, ...args], {
+  stdio: 'inherit',
+  env: process.env,
+});
+
+process.exit(result.status);

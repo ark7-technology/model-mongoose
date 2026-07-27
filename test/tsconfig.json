@@ -8,6 +8,7 @@
     "sourceMap": true,
     "declaration": true,
     "noImplicitAny": true,
+    "skipLibCheck": true,
     "target": "es2017",
     "typeRoots": ["../node_modules/@types"],
     "plugins": [{

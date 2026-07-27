@@ -17,10 +17,11 @@ import {
 import {
   ClientEncryption,
   ClientEncryptionOptions,
-} from 'mongodb-client-encryption';
+  MongoClient,
+  MongoError,
+} from 'mongodb';
 import { ConnectOptions, IndexDefinition, Mongoose, Types } from 'mongoose';
 import { IndexOptions } from 'mongoose';
-import { MongoError } from 'mongodb';
 
 import { Duration, Email, PhoneNumber, SSN, StringUUID } from './schemas';
 import { Moment } from './schemas/moment';
@@ -230,6 +231,7 @@ export class MongooseManager {
   }
 
   _encryption: ClientEncryption;
+  _encryptionClient: MongoClient;
 
   getMongooseConnection() {
     const mongooseInstance = this.options.multiTenancy?.enabled
@@ -286,14 +288,43 @@ export class MongooseManager {
     }
 
     if (this._encryption == null) {
-      const mongoClient = this.getMongooseConnection()?.getClient();
+      const autoEncryption = this.options.multiTenancy.autoEncryption;
 
-      if (mongoClient != null) {
-        this._encryption = new ClientEncryption(
-          mongoClient as any,
-          this.options.multiTenancy.autoEncryption,
-        );
-      }
+      // Create a dedicated mongodb v6 MongoClient for ClientEncryption.
+      // We cannot reuse Mongoose's MongoClient (mongodb v5) because
+      // mongodb v6's ClientEncryption produces bson v6 Binary values
+      // that would cause "Unsupported BSON version" errors when
+      // serialized by the v5 driver.
+      this._encryptionClient = new MongoClient(
+        this.options.multiTenancy.uris,
+        this.options.multiTenancy.options as any,
+      );
+
+      // Normalize kmsProviders: mongodb v6's ClientEncryption serializes
+      // kmsProviders to BSON via serialize(), which preserves JS types.
+      // A string privateKey serializes as BSON type 0x02 (string), but
+      // libmongocrypt expects BSON type 0x05 (binary) for private keys.
+      // We must convert base64-encoded privateKey strings to Buffer so
+      // they serialize as BSON binary. The old mongodb-client-encryption
+      // v2 native ClientEncryption handled this coercion internally,
+      // but mongodb v6's JavaScript ClientEncryption does not.
+      const kmsProviders = normalizeKmsProviders(
+        autoEncryption.kmsProviders,
+      );
+
+      // Only pass ClientEncryptionOptions fields — strip extra fields
+      // (bson, provider, masterKey) from AutoEncryptionOptions that
+      // are not recognized by ClientEncryption.
+      this._encryption = new ClientEncryption(
+        this._encryptionClient,
+        {
+          keyVaultNamespace: autoEncryption.keyVaultNamespace,
+          kmsProviders,
+          keyVaultClient: autoEncryption.keyVaultClient,
+          tlsOptions: autoEncryption.tlsOptions,
+          credentialProviders: autoEncryption.credentialProviders,
+        },
+      );
     }
 
     return this._encryption;
@@ -841,6 +872,41 @@ export namespace mongooseManager {
     T8 = {},
     T9 = {},
   > = T1 & T2 & T3 & T4 & T5 & T6 & T7 & T8 & T9 & Partial<mongoose.Document>;
+}
+
+/**
+ * Normalize kmsProviders for mongodb v6 ClientEncryption compatibility.
+ *
+ * mongodb v6's ClientEncryption serializes kmsProviders to BSON via
+ * serialize(), which preserves JavaScript types 1:1 — a string becomes
+ * BSON type 0x02 (UTF-8 string), a Buffer becomes BSON type 0x05 (binary).
+ *
+ * libmongocrypt expects privateKey fields as BSON binary (0x05). When a
+ * base64-encoded string is passed as privateKey, it serializes as BSON
+ * string (0x02), and libmongocrypt rejects the provider as "not configured."
+ *
+ * The old mongodb-client-encryption v2 native ClientEncryption handled
+ * string-to-binary coercion internally, but mongodb v6 does not.
+ */
+function normalizeKmsProviders(
+  kmsProviders: Record<string, any>,
+): Record<string, any> {
+  const result: Record<string, any> = {};
+  for (const [provider, config] of Object.entries(kmsProviders)) {
+    if (
+      config &&
+      typeof config === 'object' &&
+      typeof config.privateKey === 'string'
+    ) {
+      result[provider] = {
+        ...config,
+        privateKey: Buffer.from(config.privateKey, 'base64'),
+      };
+    } else {
+      result[provider] = config;
+    }
+  }
+  return result;
 }
 
 export const mongooseManager = new MongooseManager();

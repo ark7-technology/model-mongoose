@@ -1,14 +1,13 @@
 import _ from 'underscore';
 import * as mongoose from 'mongoose';
 import debug from 'debug';
-import { Binary } from 'bson';
 import { A7Model, EncryptedFieldOptions } from '@ark7/model';
 
 import { withInheritedProps as dotty } from 'object-path';
 import { mongooseManager, MongooseOptions } from '../mongoose-manager';
 import { MongooseOptionsPlugin } from '../plugin';
 import validator from 'validator';
-import { ClientEncryption } from 'mongodb-client-encryption';
+import { Binary, ClientEncryption } from 'mongodb';
 import { NamedEncryptedField } from '../mixins/extend';
 
 const d = debug('ark7:model-mongoose:plugins:encrypted-field');
@@ -52,7 +51,7 @@ export async function decryptValue(
   try {
     const binaryEncryptedValue = new Binary(
       Buffer.from(encryptedValue.substring(ENCRIPTED_HEADER.length), 'base64'),
-      6,
+      Binary.SUBTYPE_ENCRYPTED,
     );
 
     return await encryption.decrypt(binaryEncryptedValue);

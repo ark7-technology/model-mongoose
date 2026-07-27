@@ -10,7 +10,7 @@ import {
   SSN,
   StrictModel,
 } from '@ark7/model';
-import { ClientEncryptionDataKeyProvider } from 'mongodb-client-encryption';
+import { ClientEncryptionDataKeyProvider } from 'mongodb';
 
 import { MongooseModel, mongooseManager } from '../src';
 import {
