@@ -318,11 +318,18 @@ export function isURL(options?: validator.IsURLOptions): Validator {
   return isURL;
 }
 
+// RFC 9562 format check without enforcing version or variant nibbles.
+// The `validator` npm package's isUUID() enforces strict variant bits
+// ([89ab] in the first nibble of group 4), but AWS Cognito generates
+// UUID sub values with variant nibble '2' that are valid identifiers
+// but fail the strict check.
+const UUID_FORMAT = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 export function isUUID(
-  version?: 3 | 4 | 5 | '3' | '4' | '5' | 'all',
+  version?: 3 | 4 | 5 | 6 | 7 | 8 | '3' | '4' | '5' | '6' | '7' | '8' | 'all',
 ): Validator {
   const isUUID: Validator = (_target, _path, val) =>
-    val == null || validator.isUUID(val, version);
+    val == null || UUID_FORMAT.test(val);
   return isUUID;
 }
 
