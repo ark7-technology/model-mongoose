@@ -80,5 +80,12 @@
       "parser": "typescript",
       "style": "renke"
     }
+  },
+  "allowScripts": {
+    "es5-ext@0.10.64": true,
+    "fsevents@1.2.13": true,
+    "fsevents@2.3.3": true,
+    "mongodb-client-encryption@6.5.0": true,
+    "mongodb-client-encryption@2.9.1": true
   }
 }
